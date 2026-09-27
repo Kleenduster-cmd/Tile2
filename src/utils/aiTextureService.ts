@@ -1,4 +1,3 @@
-import { GoogleGenAI } from '@google/genai';
 import { createBlankImageData, hexToRgb } from './tileGenerator';
 
 // Keywords to color palette and texture archetype mapper for procedural fallback or prompt enhancement
@@ -121,48 +120,39 @@ export function synthesizeProceduralTexture(prompt: string): ImageData {
 }
 
 export async function generateAiTexture(prompt: string): Promise<ImageData> {
-  const apiKey = (typeof process !== 'undefined' && process.env?.GEMINI_API_KEY) ||
-                 (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_GEMINI_API_KEY);
-
-  if (!apiKey || apiKey === 'MY_GEMINI_API_KEY') {
-    // Graceful procedural synthesis with deterministic artistic rules
-    return synthesizeProceduralTexture(prompt);
-  }
-
   try {
-    const ai = new GoogleGenAI({ apiKey });
-    // Use gemini-2.5-flash to generate 32x32 color matrix representation
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: `You are an expert 16-bit RPG pixel artist. Generate a 32x32 pixel art seamless base terrain texture for: "${prompt}".
-Output JSON only with a single key "hexMatrix" containing an array of 32 rows, each row containing 32 hex color strings (e.g. ["#3d992a", ...]).
-Keep colors cohesive (max 6-8 distinct colors like real retro pixel art).`,
-      config: {
-        responseMimeType: 'application/json',
+    const res = await fetch('/api/generate-texture', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
       },
+      body: JSON.stringify({ prompt }),
     });
 
-    const parsed = JSON.parse(response.text || '{}');
-    if (parsed.hexMatrix && Array.isArray(parsed.hexMatrix) && parsed.hexMatrix.length >= 16) {
-      const img = createBlankImageData(32, 32);
-      const d = img.data;
-      for (let y = 0; y < 32; y++) {
-        const row = parsed.hexMatrix[y] || parsed.hexMatrix[0];
-        for (let x = 0; x < 32; x++) {
-          const hex = row[x] || '#333333';
-          const rgb = hexToRgb(hex);
-          const idx = (y * 32 + x) * 4;
-          d[idx] = rgb[0];
-          d[idx + 1] = rgb[1];
-          d[idx + 2] = rgb[2];
-          d[idx + 3] = 255;
+    if (res.ok) {
+      const data = await res.json();
+      if (data.hexMatrix && Array.isArray(data.hexMatrix) && data.hexMatrix.length >= 16) {
+        const img = createBlankImageData(32, 32);
+        const d = img.data;
+        for (let y = 0; y < 32; y++) {
+          const row = data.hexMatrix[y] || data.hexMatrix[0];
+          for (let x = 0; x < 32; x++) {
+            const hex = row[x] || '#333333';
+            const rgb = hexToRgb(hex);
+            const idx = (y * 32 + x) * 4;
+            d[idx] = rgb[0];
+            d[idx + 1] = rgb[1];
+            d[idx + 2] = rgb[2];
+            d[idx + 3] = 255;
+          }
         }
+        return img;
       }
-      return img;
     }
-    return synthesizeProceduralTexture(prompt);
   } catch (err) {
-    console.warn('AI generation fallback to procedural synthesizer:', err);
-    return synthesizeProceduralTexture(prompt);
+    console.warn('AI generation server unavailable, using procedural synthesizer:', err);
   }
+
+  // Graceful procedural synthesis with deterministic artistic rules
+  return synthesizeProceduralTexture(prompt);
 }
