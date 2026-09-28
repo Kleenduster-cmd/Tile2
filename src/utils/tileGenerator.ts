@@ -1,5 +1,14 @@
 import { GeneratedTile, TileGeneratorSettings, TileCategory } from '../types/tileset';
 import { PRESET_TEXTURES } from './pixelPresets';
+import { renderDetailedStairs, renderDetailed25dSlope } from './stairAndSlopeDetails';
+import {
+  render25dSouthFacade,
+  render25dSWCorner,
+  render25dSECorner,
+  render25dIsolatedBlock,
+  render25dHorizontalLedge,
+  applyGroundShadow,
+} from './elevation25dRenderer';
 
 export function createBlankImageData(width = 32, height = 32): ImageData {
   const canvas = document.createElement('canvas');
@@ -63,27 +72,27 @@ export const TILE_CATALOG: TileSpec[] = [
   { id: 'center', name: 'Center / Fill', category: 'core', description: 'Full seamless base texture for interiors & plateaus', col: 0, row: 0 },
   { id: 'center_alt1', name: 'Center Variation A', category: 'core', description: 'Subtle dither and surface pebble variation', col: 1, row: 0 },
   { id: 'center_alt2', name: 'Center Variation B', category: 'core', description: 'Chipped seam & mineral accent variation', col: 2, row: 0 },
-  { id: 'isolated', name: 'Isolated Island / Pillar', category: 'parts', description: 'Surrounded by edges on all 4 cardinal directions', col: 3, row: 0 },
-  { id: 'corridor_vert', name: 'Vertical Path', category: 'parts', description: '1-tile wide pathway bordered on left and right', col: 4, row: 0 },
-  { id: 'corridor_horiz', name: 'Horizontal Path', category: 'parts', description: '1-tile wide pathway bordered on top and bottom', col: 5, row: 0 },
-  { id: 'cliff_stairs', name: 'Carved Stairs', category: 'cliffs', description: 'Stone steps ascending the wall elevation', col: 6, row: 0 },
-  { id: 'cliff_wall_mid', name: 'Cliff Wall Face', category: 'cliffs', description: 'Vertical drop wall with rock strata & drop shadow', col: 7, row: 0 },
+  { id: 'isolated', name: '2.5D Raised Pedestal / Block', category: 'parts', description: 'Elevated 3D cube block with top face, front facade & ground shadow', col: 3, row: 0 },
+  { id: 'corridor_vert', name: 'Vertical Causeway', category: 'parts', description: '1-tile wide raised path flanked by west and east side walls', col: 4, row: 0 },
+  { id: 'corridor_horiz', name: '2.5D Raised Ledge / Path', category: 'parts', description: 'Elevated horizontal walkway with south vertical cliff drop', col: 5, row: 0 },
+  { id: 'cliff_stairs', name: '2.5D Carved Stairs', category: 'cliffs', description: '4-step vertical stairway with treads, risers, and 3D balustrades', col: 6, row: 0 },
+  { id: 'cliff_wall_mid', name: '2.5D Cliff Wall Face', category: 'cliffs', description: 'Vertical drop wall with rock strata & drop shadow', col: 7, row: 0 },
 
-  // Row 1: 4 Cardinal Edges
-  { id: 'edge_top', name: 'Edge North (Top)', category: 'edges', description: 'Top perimeter wall edge with border finish', col: 0, row: 1 },
-  { id: 'edge_bottom', name: 'Edge South (Bottom)', category: 'edges', description: 'Bottom perimeter wall edge with cast shadow', col: 1, row: 1 },
-  { id: 'edge_left', name: 'Edge West (Left)', category: 'edges', description: 'Left perimeter edge border', col: 2, row: 1 },
-  { id: 'edge_right', name: 'Edge East (Right)', category: 'edges', description: 'Right perimeter edge border', col: 3, row: 1 },
+  // Row 1: 4 Cardinal Edges (2.5D Elevation Borders)
+  { id: 'edge_top', name: '2.5D North Plateau Lip', category: 'edges', description: 'Top perimeter rim with sunlit highlight and plateau floor', col: 0, row: 1 },
+  { id: 'edge_bottom', name: '2.5D South Cliff Drop (Facade)', category: 'edges', description: 'Vertical drop wall facade with rock strata and ground drop shadow', col: 1, row: 1 },
+  { id: 'edge_left', name: '2.5D West Cliff Wall Profile', category: 'edges', description: 'West side cliff edge with sunlit 2.5D edge bevel', col: 2, row: 1 },
+  { id: 'edge_right', name: '2.5D East Cliff Wall Profile', category: 'edges', description: 'East side cliff edge with dark shadow band', col: 3, row: 1 },
   { id: 'endcap_n', name: 'Endcap North', category: 'parts', description: 'Closed dead-end facing North', col: 4, row: 1 },
-  { id: 'endcap_s', name: 'Endcap South', category: 'parts', description: 'Closed dead-end facing South', col: 5, row: 1 },
+  { id: 'endcap_s', name: '2.5D Endcap South (Drop)', category: 'parts', description: 'Closed dead-end facing South with vertical cliff face', col: 5, row: 1 },
   { id: 'endcap_w', name: 'Endcap West', category: 'parts', description: 'Closed dead-end facing West', col: 6, row: 1 },
   { id: 'endcap_e', name: 'Endcap East', category: 'parts', description: 'Closed dead-end facing East', col: 7, row: 1 },
 
-  // Row 2: 4 Outer Corners (Convex 90 deg)
-  { id: 'corner_outer_tl', name: 'Outer Corner NW', category: 'corners_outer', description: 'Top-Left 90° convex corner turn', col: 0, row: 2 },
-  { id: 'corner_outer_tr', name: 'Outer Corner NE', category: 'corners_outer', description: 'Top-Right 90° convex corner turn', col: 1, row: 2 },
-  { id: 'corner_outer_bl', name: 'Outer Corner SW', category: 'corners_outer', description: 'Bottom-Left 90° convex corner turn', col: 2, row: 2 },
-  { id: 'corner_outer_br', name: 'Outer Corner SE', category: 'corners_outer', description: 'Bottom-Right 90° convex corner turn', col: 3, row: 2 },
+  // Row 2: 4 Outer Corners (2.5D Elevation Corners)
+  { id: 'corner_outer_tl', name: '2.5D NW Plateau Corner', category: 'corners_outer', description: 'Sunlit top-left convex corner of elevated plateau', col: 0, row: 2 },
+  { id: 'corner_outer_tr', name: '2.5D NE Plateau Corner', category: 'corners_outer', description: 'Top-right convex corner with shaded east bevel', col: 1, row: 2 },
+  { id: 'corner_outer_bl', name: '2.5D SW Cliff Corner (Drop)', category: 'corners_outer', description: 'South-West corner with west profile, front wall drop & ground shadow', col: 2, row: 2 },
+  { id: 'corner_outer_br', name: '2.5D SE Cliff Corner (Drop)', category: 'corners_outer', description: 'South-East corner with front wall drop and right/bottom cast shadow', col: 3, row: 2 },
   { id: 'cliff_top_lip', name: 'Cliff Top Edge', category: 'cliffs', description: 'Top cliff lip transitioning into vertical wall drop', col: 4, row: 2 },
   { id: 'cliff_base_seam', name: 'Cliff Base Seam', category: 'cliffs', description: 'Base of cliff meeting lower ground terrain', col: 5, row: 2 },
   { id: 'cliff_corner_l', name: 'Cliff Wall Left Edge', category: 'cliffs', description: 'Left corner profile of elevated cliff wall', col: 6, row: 2 },
@@ -141,7 +150,10 @@ export const TILE_CATALOG: TileSpec[] = [
 ];
 
 // Helper to determine if pixel (x,y) is inside primary terrain shape for a given tile ID
-function evalShape(id: string, x: number, y: number, radius: number): boolean {
+function evalShape(id: string, x: number, y: number, radius: number, settings?: TileGeneratorSettings): boolean {
+  const angleDeg = settings?.projectionAngle ?? 30;
+  const tanAngle = Math.tan((angleDeg * Math.PI) / 180); // tan(30°) ≈ 0.577
+
   switch (id) {
     case 'center':
     case 'center_alt1':
@@ -206,33 +218,33 @@ function evalShape(id: string, x: number, y: number, radius: number): boolean {
     case 'cross_4way':
       return (x >= 8 && x < 24) || (y >= 8 && y < 24);
 
-    // 45 deg slopes
+    // 30° / 45° Diagonal Slopes (governed by 30° top-down bird's-eye projection)
     case 'slope_ne_fill':
-      // Slanted line from bottom-left to top-right, filled on bottom-right (x + y >= 31)
-      return (x + y) >= 31;
+      // 30° bird's-eye slope rising to top-right
+      return y >= Math.round(31 - x * tanAngle);
     case 'slope_nw_fill':
-      // Slanted line from top-left to bottom-right, filled on bottom-left (y >= x)
-      return y >= x;
+      // 30° bird's-eye slope rising to top-left
+      return y >= Math.round(x * tanAngle);
     case 'slope_se_fill':
-      // Slanted line from top-left to bottom-right, filled on top-left (y <= x)
-      return y <= x;
+      // 30° bird's-eye slope descending to bottom-right
+      return y <= Math.round(x * tanAngle);
     case 'slope_sw_fill':
-      // Slanted line from bottom-left to top-right, filled on top-left (x + y <= 31)
-      return (x + y) <= 31;
+      // 30° bird's-eye slope descending to bottom-left
+      return y <= Math.round(31 - x * tanAngle);
 
-    // Gentle 2:1 slopes (shallow angle)
+    // Gentle 30° shallow incline transitions across 2 tiles
     case 'slope_gentle_n1':
-      // Left part of 2:1 slope: starts at y=31 on left, climbs to y=16 at right
-      return y >= Math.round(31 - (x * 0.5));
+      // Left part of shallow 30° slope: climbs from bottom edge
+      return y >= Math.round(31 - x * tanAngle);
     case 'slope_gentle_n2':
-      // Right part of 2:1 slope: starts at y=16 on left, climbs to y=0 at right
-      return y >= Math.round(15 - (x * 0.5));
+      // Right part of shallow 30° slope: continues climb up to top edge
+      return y >= Math.max(0, Math.round(31 - (16 + x) * tanAngle));
     case 'slope_gentle_s1':
-      // Left part of 2:1 descending slope
-      return y <= Math.round(x * 0.5);
+      // Left part of shallow 30° descending slope
+      return y <= Math.round(x * tanAngle);
     case 'slope_gentle_s2':
-      // Right part of 2:1 descending slope
-      return y <= Math.round(16 + (x * 0.5));
+      // Right part of shallow 30° descending slope
+      return y <= Math.min(31, Math.round((16 + x) * tanAngle));
 
     // Curved Outer (Convex)
     case 'curve_convex_tl': {
@@ -370,17 +382,27 @@ export function generateTileset(
     const tileImg = createBlankImageData(32, 32);
     const tileData = tileImg.data;
 
-    // Special handling for Cliffs & 2.5D Slopes
+    // Special handling for Cliffs & 2.5D Elevation Elements
     if (spec.category === 'cliffs') {
-      renderCliffTile(tileData, baseData, spec.id, settings, outlineR, outlineG, outlineB);
+      renderCliffTile(tileData, baseData, spec.id, settings, outlineR, outlineG, outlineB, highlightRgb);
     } else if (spec.category === 'slopes_25d') {
-      render25dSlopeTile(tileData, baseData, spec.id, settings, outlineR, outlineG, outlineB, underlayData);
+      render25dSlopeTile(tileData, baseData, spec.id, settings, outlineR, outlineG, outlineB, highlightRgb, underlayData);
+    } else if (spec.id === 'edge_bottom') {
+      render25dSouthFacade(tileData, baseData, settings, outlineR, outlineG, outlineB, highlightRgb, underlayData);
+    } else if (spec.id === 'corner_outer_bl') {
+      render25dSWCorner(tileData, baseData, settings, outlineR, outlineG, outlineB, highlightRgb, underlayData);
+    } else if (spec.id === 'corner_outer_br') {
+      render25dSECorner(tileData, baseData, settings, outlineR, outlineG, outlineB, highlightRgb, underlayData);
+    } else if (spec.id === 'isolated') {
+      render25dIsolatedBlock(tileData, baseData, settings, outlineR, outlineG, outlineB, highlightRgb, underlayData);
+    } else if (spec.id === 'corridor_horiz') {
+      render25dHorizontalLedge(tileData, baseData, settings, outlineR, outlineG, outlineB, highlightRgb, underlayData);
     } else {
       // 1. Determine shape mask for all 32x32 pixels
       const mask: boolean[][] = Array.from({ length: 32 }, () => Array(32).fill(false));
       for (let y = 0; y < 32; y++) {
         for (let x = 0; x < 32; x++) {
-          mask[y][x] = evalShape(spec.id, x, y, settings.cornerRoundness * 2 + 10);
+          mask[y][x] = evalShape(spec.id, x, y, settings.cornerRoundness * 2 + 10, settings);
         }
       }
 
@@ -415,6 +437,8 @@ export function generateTileset(
       }
 
       // 3. Render pixel by pixel
+      const depthIntensity = settings.slopeDepthIntensity ?? 0.85;
+
       for (let y = 0; y < 32; y++) {
         for (let x = 0; x < 32; x++) {
           const idx = (y * 32 + x) * 4;
@@ -445,6 +469,61 @@ export function generateTileset(
                 r = Math.max(0, r - 45);
                 g = Math.max(0, g - 45);
                 b = Math.max(0, b - 45);
+              }
+            }
+
+            // Slope Depth, Incline Gradient & Terracing for Row 4 30° / 45° Slopes
+            if (spec.category === 'slopes') {
+              const angleDeg = settings.projectionAngle ?? 30;
+              const tanAngle = Math.tan((angleDeg * Math.PI) / 180);
+              let slopeDist = 0;
+              let isNorthOrWestFacing = false;
+
+              if (spec.id === 'slope_ne_fill') {
+                slopeDist = y - Math.round(31 - x * tanAngle);
+                isNorthOrWestFacing = true;
+              } else if (spec.id === 'slope_nw_fill') {
+                slopeDist = y - Math.round(x * tanAngle);
+                isNorthOrWestFacing = false;
+              } else if (spec.id === 'slope_se_fill') {
+                slopeDist = Math.round(x * tanAngle) - y;
+                isNorthOrWestFacing = true;
+              } else if (spec.id === 'slope_sw_fill') {
+                slopeDist = Math.round(31 - x * tanAngle) - y;
+                isNorthOrWestFacing = true;
+              } else if (spec.id === 'slope_gentle_n1') {
+                slopeDist = y - Math.round(31 - x * tanAngle);
+                isNorthOrWestFacing = true;
+              } else if (spec.id === 'slope_gentle_n2') {
+                slopeDist = y - Math.max(0, Math.round(31 - (16 + x) * tanAngle));
+                isNorthOrWestFacing = true;
+              } else if (spec.id === 'slope_gentle_s1') {
+                slopeDist = Math.round(x * tanAngle) - y;
+                isNorthOrWestFacing = false;
+              } else if (spec.id === 'slope_gentle_s2') {
+                slopeDist = Math.min(31, Math.round((16 + x) * tanAngle)) - y;
+                isNorthOrWestFacing = false;
+              }
+
+              if (slopeDist >= 0) {
+                if (slopeDist === 1) {
+                  // Slope top crest terrace highlight
+                  const rimMult = isNorthOrWestFacing ? 1.25 : 1.12;
+                  r = Math.min(255, Math.round(r * rimMult + highlightRgb[0] * 0.18));
+                  g = Math.min(255, Math.round(g * rimMult + highlightRgb[1] * 0.18));
+                  b = Math.min(255, Math.round(b * rimMult + highlightRgb[2] * 0.18));
+                } else if (slopeDist === 2 || slopeDist === 3) {
+                  // Upper terrace step
+                  r = Math.min(255, Math.round(r * 1.08));
+                  g = Math.min(255, Math.round(g * 1.08));
+                  b = Math.min(255, Math.round(b * 1.08));
+                } else if (slopeDist >= 4 && slopeDist <= 10) {
+                  // Incline shading gradient
+                  const slopeShade = Math.max(0.72, 1.0 - ((slopeDist - 3) / 7) * 0.22 * depthIntensity);
+                  r = Math.round(r * slopeShade);
+                  g = Math.round(g * slopeShade);
+                  b = Math.round(b * slopeShade);
+                }
               }
             }
 
@@ -482,11 +561,68 @@ export function generateTileset(
               b = Math.min(255, Math.round(b * 0.7 + highlightRgb[2] * 0.3));
             }
 
+            // 2.5D Top-Down Elevation Lighting & Perspective Shading
+            if (spec.id === 'edge_top' && (y === 8 || y === 9)) {
+              // Sunlit North Plateau Lip
+              r = Math.min(255, Math.round(r * 1.32 + highlightRgb[0] * 0.2));
+              g = Math.min(255, Math.round(g * 1.32 + highlightRgb[1] * 0.2));
+              b = Math.min(255, Math.round(b * 1.32 + highlightRgb[2] * 0.2));
+            } else if (spec.id === 'edge_left' && (x === 8 || x === 9)) {
+              // Sunlit West Cliff Profile
+              r = Math.min(255, Math.round(r * 1.28 + highlightRgb[0] * 0.18));
+              g = Math.min(255, Math.round(g * 1.28 + highlightRgb[1] * 0.18));
+              b = Math.min(255, Math.round(b * 1.28 + highlightRgb[2] * 0.18));
+            } else if (spec.id === 'edge_right' && (x === 22 || x === 23)) {
+              // Shaded East Cliff Profile
+              r = Math.round(r * 0.62);
+              g = Math.round(g * 0.62);
+              b = Math.round(b * 0.62);
+            } else if (spec.id === 'corner_outer_tl' && (x <= 10 && y <= 10)) {
+              // Sunlit NW Apex Corner
+              r = Math.min(255, Math.round(r * 1.38 + highlightRgb[0] * 0.25));
+              g = Math.min(255, Math.round(g * 1.38 + highlightRgb[1] * 0.25));
+              b = Math.min(255, Math.round(b * 1.38 + highlightRgb[2] * 0.25));
+            } else if (spec.id === 'corner_outer_tr') {
+              if (y <= 9) {
+                r = Math.min(255, Math.round(r * 1.25 + highlightRgb[0] * 0.15));
+                g = Math.min(255, Math.round(g * 1.25 + highlightRgb[1] * 0.15));
+                b = Math.min(255, Math.round(b * 1.25 + highlightRgb[2] * 0.15));
+              }
+              if (x >= 22) {
+                r = Math.round(r * 0.65);
+                g = Math.round(g * 0.65);
+                b = Math.round(b * 0.65);
+              }
+            } else if (spec.id === 'corridor_vert') {
+              if (x <= 9) {
+                r = Math.min(255, Math.round(r * 1.25));
+                g = Math.min(255, Math.round(g * 1.25));
+                b = Math.min(255, Math.round(b * 1.25));
+              } else if (x >= 22) {
+                r = Math.round(r * 0.65);
+                g = Math.round(g * 0.65);
+                b = Math.round(b * 0.65);
+              }
+            }
+
             tileData[idx] = r;
             tileData[idx + 1] = g;
             tileData[idx + 2] = b;
             tileData[idx + 3] = a;
           } else {
+            // 2.5D Ground drop shadow outside East-facing cliffs
+            const isEastWallShadow = (
+              (spec.id === 'edge_right' && (x === 24 || x === 25)) ||
+              (spec.id === 'corner_outer_tr' && (x === 24 || x === 25) && y >= 8) ||
+              (spec.id === 'corridor_vert' && (x === 24 || x === 25))
+            );
+            if (isEastWallShadow) {
+              const shadowDist = x - 23;
+              const shadowFactor = 0.5 + shadowDist * 0.15;
+              applyGroundShadow(tileData, idx, shadowFactor, settings, underlayData);
+              continue;
+            }
+
             // Outside shape: render underlay or transparent
             if (settings.underlayType === 'color') {
               const bgRgb = hexToRgb(settings.underlayColor);
@@ -557,8 +693,14 @@ function renderCliffTile(
   settings: TileGeneratorSettings,
   outlineR: number,
   outlineG: number,
-  outlineB: number
+  outlineB: number,
+  highlightRgb: [number, number, number]
 ) {
+  if (tileId === 'cliff_stairs') {
+    renderDetailedStairs(tileData, baseData, settings, outlineR, outlineG, outlineB, highlightRgb);
+    return;
+  }
+
   const cliffHeight = settings.cliffHeight; // default ~12-16px
   const shadowAlpha = settings.cliffShadowIntensity;
 
@@ -654,62 +796,8 @@ function renderCliffTile(
           tileData[idx+2] = Math.round(b * 0.7);
           tileData[idx+3] = 255;
         }
-      } else if (tileId === 'cliff_stairs') {
-        // Carved stairs (4 steps spanning y=0 to y=31)
-        const step = Math.floor(y / 8); // 0, 1, 2, 3
-        const stepY = y % 8;
-        const stairMargin = 4;
-
-        if (x < stairMargin || x >= 32 - stairMargin) {
-          // Side balustrade / rock trim
-          tileData[idx] = Math.round(r * 0.5);
-          tileData[idx + 1] = Math.round(g * 0.5);
-          tileData[idx + 2] = Math.round(b * 0.5);
-        } else if (stepY === 0) {
-          // Step tread front highlight
-          tileData[idx] = Math.min(255, Math.round(r * 1.3 + 30));
-          tileData[idx + 1] = Math.min(255, Math.round(g * 1.3 + 30));
-          tileData[idx + 2] = Math.min(255, Math.round(b * 1.3 + 30));
-        } else if (stepY <= 5) {
-          // Flat step tread surface
-          tileData[idx] = Math.round(r * 1.05);
-          tileData[idx + 1] = Math.round(g * 1.05);
-          tileData[idx + 2] = Math.round(b * 1.05);
-        } else {
-          // Step riser shadow
-          tileData[idx] = Math.round(r * 0.4);
-          tileData[idx + 1] = Math.round(g * 0.4);
-          tileData[idx + 2] = Math.round(b * 0.4);
-        }
-        tileData[idx + 3] = 255;
       }
     }
-  }
-}
-
-// Helper to apply background pixel (transparent, secondary preset texture, or solid color)
-function applyBackgroundPixel(
-  tileData: Uint8ClampedArray,
-  idx: number,
-  settings: TileGeneratorSettings,
-  underlayData: ImageData | null
-) {
-  if (settings.underlayType === 'color') {
-    const bgRgb = hexToRgb(settings.underlayColor);
-    tileData[idx] = bgRgb[0];
-    tileData[idx + 1] = bgRgb[1];
-    tileData[idx + 2] = bgRgb[2];
-    tileData[idx + 3] = 255;
-  } else if (settings.underlayType === 'preset' && underlayData) {
-    tileData[idx] = underlayData.data[idx];
-    tileData[idx + 1] = underlayData.data[idx + 1];
-    tileData[idx + 2] = underlayData.data[idx + 2];
-    tileData[idx + 3] = underlayData.data[idx + 3];
-  } else {
-    tileData[idx] = 0;
-    tileData[idx + 1] = 0;
-    tileData[idx + 2] = 0;
-    tileData[idx + 3] = 0;
   }
 }
 
@@ -722,736 +810,18 @@ export function render25dSlopeTile(
   outlineR: number,
   outlineG: number,
   outlineB: number,
+  highlightRgb: [number, number, number] = [255, 255, 255],
   underlayData: ImageData | null = null
 ) {
-  const rampStyle = settings.rampSurfaceType || 'natural';
-  const shadowAlpha = settings.cliffShadowIntensity;
-  const slopeBg = settings.slopeBackgroundWall || 'none';
-  const noBgWall = (slopeBg === 'none');
-  const isNaturalBank = (slopeBg === 'natural_bank');
-
-  for (let y = 0; y < 32; y++) {
-    for (let x = 0; x < 32; x++) {
-      const idx = (y * 32 + x) * 4;
-      const r = baseData[idx];
-      const g = baseData[idx + 1];
-      const b = baseData[idx + 2];
-
-      // 1. Single-tile Vertical Ramp (N-S)
-      if (tileId === 'slope25d_ramp_v_full') {
-        const leftMargin = 5;
-        const rightMargin = 26;
-
-        if (x < leftMargin) {
-          if (noBgWall) {
-            // No background wall: open transparent side with clean curb border
-            if (x < leftMargin - 1) {
-              applyBackgroundPixel(tileData, idx, settings, underlayData);
-            } else {
-              tileData[idx] = outlineR; tileData[idx+1] = outlineG; tileData[idx+2] = outlineB; tileData[idx+3] = 255;
-            }
-          } else if (isNaturalBank) {
-            const bankShade = 0.82 + (y / 80);
-            tileData[idx] = Math.round(r * bankShade);
-            tileData[idx+1] = Math.round(g * bankShade);
-            tileData[idx+2] = Math.round(b * bankShade);
-            tileData[idx+3] = 255;
-          } else {
-            // Left retaining rock wall wing
-            if (x === 0) {
-              tileData[idx] = 0; tileData[idx+1] = 0; tileData[idx+2] = 0; tileData[idx+3] = 0;
-            } else if (x === leftMargin - 1) {
-              tileData[idx] = outlineR; tileData[idx+1] = outlineG; tileData[idx+2] = outlineB; tileData[idx+3] = 255;
-            } else {
-              const wallShade = 0.55 + (y / 64);
-              tileData[idx] = Math.round(r * wallShade);
-              tileData[idx+1] = Math.round(g * wallShade);
-              tileData[idx+2] = Math.round(b * wallShade);
-              tileData[idx+3] = 255;
-            }
-          }
-        } else if (x > rightMargin) {
-          if (noBgWall) {
-            // No background wall: open transparent side with clean curb border
-            if (x > rightMargin + 1) {
-              applyBackgroundPixel(tileData, idx, settings, underlayData);
-            } else {
-              tileData[idx] = outlineR; tileData[idx+1] = outlineG; tileData[idx+2] = outlineB; tileData[idx+3] = 255;
-            }
-          } else if (isNaturalBank) {
-            const bankShade = 0.80 + (y / 80);
-            tileData[idx] = Math.round(r * bankShade);
-            tileData[idx+1] = Math.round(g * bankShade);
-            tileData[idx+2] = Math.round(b * bankShade);
-            tileData[idx+3] = 255;
-          } else {
-            // Right retaining rock wall wing
-            if (x === 31) {
-              tileData[idx] = 0; tileData[idx+1] = 0; tileData[idx+2] = 0; tileData[idx+3] = 0;
-            } else if (x === rightMargin + 1) {
-              tileData[idx] = outlineR; tileData[idx+1] = outlineG; tileData[idx+2] = outlineB; tileData[idx+3] = 255;
-            } else {
-              const wallShade = 0.50 + (y / 64);
-              tileData[idx] = Math.round(r * wallShade);
-              tileData[idx+1] = Math.round(g * wallShade);
-              tileData[idx+2] = Math.round(b * wallShade);
-              tileData[idx+3] = 255;
-            }
-          }
-        } else {
-          // Ramp slope surface
-          // Elevation gradient: higher and brighter at top (y=0), darker at bottom (y=31)
-          const elevationLight = 1.18 - (y / 31) * 0.32;
-          let pr = Math.min(255, Math.round(r * elevationLight));
-          let pg = Math.min(255, Math.round(g * elevationLight));
-          let pb = Math.min(255, Math.round(b * elevationLight));
-
-          if (rampStyle === 'mud_slide') {
-            // Pokémon Diamond & Pearl Sinnoh Mud Slide / Bicycle Ramp (Chevron treads & bike ruts)
-            const chevronY = (y + Math.abs(x - 16) * 0.5) % 6;
-            const isBikeRut = (x >= 9 && x <= 11) || (x >= 20 && x <= 22);
-
-            if (chevronY < 1.2) {
-              // Highlight crest of chevron mud tread
-              pr = Math.min(255, pr + 38);
-              pg = Math.min(255, pg + 38);
-              pb = Math.min(255, pb + 38);
-            } else if (chevronY > 4.2) {
-              // Shaded trough groove of chevron slide
-              pr = Math.round(pr * 0.62);
-              pg = Math.round(pg * 0.62);
-              pb = Math.round(pb * 0.62);
-            }
-
-            if (isBikeRut) {
-              // High-gear bike tire tread depression
-              pr = Math.round(pr * 0.78);
-              pg = Math.round(pg * 0.78);
-              pb = Math.round(pb * 0.78);
-            }
-          } else if (rampStyle === 'stepped') {
-            // Dragon Quest DS classic stepped stone incline risers
-            const stepY = y % 8;
-            if (stepY === 0) {
-              // Top edge specular stone highlight
-              pr = Math.min(255, pr + 42);
-              pg = Math.min(255, pg + 42);
-              pb = Math.min(255, pb + 42);
-            } else if (stepY === 7) {
-              // Front stone riser shadow
-              pr = Math.round(pr * 0.64);
-              pg = Math.round(pg * 0.64);
-              pb = Math.round(pb * 0.64);
-            } else if (stepY === 1) {
-              pr = Math.min(255, pr + 18);
-              pg = Math.min(255, pg + 18);
-              pb = Math.min(255, pb + 18);
-            }
-          } else if (rampStyle === 'plank') {
-            const isSeam = (y % 6 === 0);
-            const isPin = (x === 7 || x === 24) && (y % 6 === 2);
-            if (isSeam) {
-              pr = Math.round(r * 0.4);
-              pg = Math.round(g * 0.4);
-              pb = Math.round(b * 0.4);
-            } else if (isPin) {
-              pr = 25; pg = 25; pb = 30; // iron nail
-            } else if (y % 6 === 1) {
-              pr = Math.min(255, pr + 25);
-              pg = Math.min(255, pg + 25);
-              pb = Math.min(255, pb + 25);
-            }
-          } else {
-            // Natural dirt / grass incline grooves
-            const isWheelTrack = (x >= 9 && x <= 11) || (x >= 20 && x <= 22);
-            if (isWheelTrack) {
-              pr = Math.round(pr * 0.85);
-              pg = Math.round(pg * 0.85);
-              pb = Math.round(pb * 0.85);
-            }
-          }
-
-          // Top entry rim and bottom apron shadow
-          if (y === 0) {
-            pr = Math.min(255, pr + 20);
-            pg = Math.min(255, pg + 20);
-            pb = Math.min(255, pb + 20);
-          } else if (y >= 30) {
-            if (noBgWall) {
-              pr = Math.round(pr * 0.9);
-              pg = Math.round(pg * 0.9);
-              pb = Math.round(pb * 0.9);
-            } else {
-              pr = Math.round(pr * (0.8 - shadowAlpha * 0.2));
-              pg = Math.round(pg * (0.8 - shadowAlpha * 0.2));
-              pb = Math.round(pb * (0.8 - shadowAlpha * 0.2));
-            }
-          }
-
-          tileData[idx] = pr;
-          tileData[idx+1] = pg;
-          tileData[idx+2] = pb;
-          tileData[idx+3] = 255;
-        }
-      }
-
-      // 2. Vertical Ramp Top Crest (Upper connection to plateau)
-      else if (tileId === 'slope25d_ramp_v_top') {
-        const leftWall = Math.round(1 + (y * 5 / 31));
-        const rightWall = Math.round(30 - (y * 5 / 31));
-
-        if (x < leftWall || x > rightWall) {
-          if (noBgWall) {
-            // Freestanding open ramp: no background rock wall, transparent negative space
-            applyBackgroundPixel(tileData, idx, settings, underlayData);
-          } else if (isNaturalBank) {
-            const bankShade = 0.85 + (y / 80);
-            tileData[idx] = Math.round(r * bankShade);
-            tileData[idx+1] = Math.round(g * bankShade);
-            tileData[idx+2] = Math.round(b * bankShade);
-            tileData[idx+3] = 255;
-          } else if (y < 8) {
-            // Plateau surface
-            tileData[idx] = r; tileData[idx+1] = g; tileData[idx+2] = b; tileData[idx+3] = 255;
-          } else {
-            // Upper cliff rock wings
-            const wingShade = 0.6 + (y / 64);
-            tileData[idx] = Math.round(r * wingShade);
-            tileData[idx+1] = Math.round(g * wingShade);
-            tileData[idx+2] = Math.round(b * wingShade);
-            tileData[idx+3] = 255;
-          }
-        } else if (x === leftWall || x === rightWall) {
-          tileData[idx] = outlineR; tileData[idx+1] = outlineG; tileData[idx+2] = outlineB; tileData[idx+3] = 255;
-        } else {
-          // Ramp bed
-          const elev = 1.15 - (y / 60);
-          tileData[idx] = Math.min(255, Math.round(r * elev));
-          tileData[idx+1] = Math.min(255, Math.round(g * elev));
-          tileData[idx+2] = Math.min(255, Math.round(b * elev));
-          tileData[idx+3] = 255;
-        }
-      }
-
-      // 3. Vertical Ramp Base Apron (Lower connection with cast shadow)
-      else if (tileId === 'slope25d_ramp_v_base') {
-        if (y < 16) {
-          if (x < 6 || x > 25) {
-            if (noBgWall) {
-              applyBackgroundPixel(tileData, idx, settings, underlayData);
-            } else if (isNaturalBank) {
-              const baseWallShade = 0.78 + (y / 50);
-              tileData[idx] = Math.round(r * baseWallShade);
-              tileData[idx+1] = Math.round(g * baseWallShade);
-              tileData[idx+2] = Math.round(b * baseWallShade);
-              tileData[idx+3] = 255;
-            } else {
-              const baseWallShade = 0.55 + (y / 40);
-              tileData[idx] = Math.round(r * baseWallShade);
-              tileData[idx+1] = Math.round(g * baseWallShade);
-              tileData[idx+2] = Math.round(b * baseWallShade);
-              tileData[idx+3] = 255;
-            }
-          } else if (x === 6 || x === 25) {
-            tileData[idx] = outlineR; tileData[idx+1] = outlineG; tileData[idx+2] = outlineB; tileData[idx+3] = 255;
-          } else {
-            tileData[idx] = Math.round(r * 0.95);
-            tileData[idx+1] = Math.round(g * 0.95);
-            tileData[idx+2] = Math.round(b * 0.95);
-            tileData[idx+3] = 255;
-          }
-        } else if (y >= 16 && y <= 20) {
-          // Bottom apron shadow band
-          if (noBgWall) {
-            const softShadow = 0.88 - shadowAlpha * 0.12;
-            tileData[idx] = Math.round(r * softShadow);
-            tileData[idx+1] = Math.round(g * softShadow);
-            tileData[idx+2] = Math.round(b * softShadow);
-          } else {
-            tileData[idx] = Math.round(r * (0.6 - shadowAlpha * 0.25));
-            tileData[idx+1] = Math.round(g * (0.6 - shadowAlpha * 0.25));
-            tileData[idx+2] = Math.round(b * (0.6 - shadowAlpha * 0.25));
-          }
-          tileData[idx+3] = 255;
-        } else {
-          // Lower flat terrain
-          tileData[idx] = r; tileData[idx+1] = g; tileData[idx+2] = b; tileData[idx+3] = 255;
-        }
-      }
-
-      // 4. Lateral Ramp W→E Top (Ascending left to right)
-      else if (tileId === 'slope25d_ramp_lat_w2e_top') {
-        const rampY = Math.round(24 - (x * 16 / 31));
-        const distFromRamp = y - rampY;
-
-        if (distFromRamp < -4) {
-          if (noBgWall) {
-            // No background wall: open transparent air above ramp ledge!
-            applyBackgroundPixel(tileData, idx, settings, underlayData);
-          } else if (isNaturalBank) {
-            const bgShade = 0.82 + ((y % 4) * 0.04);
-            tileData[idx] = Math.round(r * bgShade);
-            tileData[idx+1] = Math.round(g * bgShade);
-            tileData[idx+2] = Math.round(b * bgShade);
-            tileData[idx+3] = 255;
-          } else {
-            // Upper cliff rock background
-            const bgShade = 0.65 + ((y % 4) * 0.05);
-            tileData[idx] = Math.round(r * bgShade);
-            tileData[idx+1] = Math.round(g * bgShade);
-            tileData[idx+2] = Math.round(b * bgShade);
-            tileData[idx+3] = 255;
-          }
-        } else if (distFromRamp === -4) {
-          // Sunlit upper ramp ledge rim
-          tileData[idx] = Math.min(255, Math.round(r * 1.35 + 30));
-          tileData[idx+1] = Math.min(255, Math.round(g * 1.35 + 30));
-          tileData[idx+2] = Math.min(255, Math.round(b * 1.35 + 30));
-          tileData[idx+3] = 255;
-        } else if (distFromRamp >= -3 && distFromRamp <= 3) {
-          // Walkable ramp track
-          const inclineLight = 0.95 + (x / 31) * 0.2;
-          tileData[idx] = Math.min(255, Math.round(r * inclineLight));
-          tileData[idx+1] = Math.min(255, Math.round(g * inclineLight));
-          tileData[idx+2] = Math.min(255, Math.round(b * inclineLight));
-          tileData[idx+3] = 255;
-        } else if (distFromRamp === 4) {
-          // Lower ramp edge curb
-          tileData[idx] = outlineR; tileData[idx+1] = outlineG; tileData[idx+2] = outlineB; tileData[idx+3] = 255;
-        } else {
-          // Below the ramp
-          if (noBgWall) {
-            if (rampStyle === 'plank' && (x === 6 || x === 18 || x === 28) && distFromRamp <= 12) {
-              // Wooden support trestle post
-              tileData[idx] = Math.round(r * 0.45);
-              tileData[idx+1] = Math.round(g * 0.45);
-              tileData[idx+2] = Math.round(b * 0.45);
-              tileData[idx+3] = 255;
-            } else {
-              applyBackgroundPixel(tileData, idx, settings, underlayData);
-            }
-          } else if (isNaturalBank) {
-            const bankShade = 0.78 - ((distFromRamp - 4) / 20) * 0.2;
-            tileData[idx] = Math.round(r * bankShade);
-            tileData[idx+1] = Math.round(g * bankShade);
-            tileData[idx+2] = Math.round(b * bankShade);
-            tileData[idx+3] = 255;
-          } else {
-            tileData[idx] = Math.round(r * 0.5);
-            tileData[idx+1] = Math.round(g * 0.5);
-            tileData[idx+2] = Math.round(b * 0.5);
-            tileData[idx+3] = 255;
-          }
-        }
-      }
-
-      // 5. Lateral Ramp W→E Wedge Wall
-      else if (tileId === 'slope25d_ramp_lat_w2e_wall') {
-        const wallBottom = Math.round(6 + (x * 20 / 31));
-
-        if (y < wallBottom) {
-          if (noBgWall) {
-            if (rampStyle === 'plank') {
-              const isPillar = (x === 6 || x === 18 || x === 28);
-              if (isPillar) {
-                tileData[idx] = Math.round(r * 0.45);
-                tileData[idx+1] = Math.round(g * 0.45);
-                tileData[idx+2] = Math.round(b * 0.45);
-                tileData[idx+3] = 255;
-              } else {
-                applyBackgroundPixel(tileData, idx, settings, underlayData);
-              }
-            } else {
-              applyBackgroundPixel(tileData, idx, settings, underlayData);
-            }
-          } else if (isNaturalBank) {
-            const bankShade = 0.88 - ((y / wallBottom) * 0.22);
-            tileData[idx] = Math.round(r * bankShade);
-            tileData[idx+1] = Math.round(g * bankShade);
-            tileData[idx+2] = Math.round(b * bankShade);
-            tileData[idx+3] = 255;
-          } else {
-            const strata = Math.sin(y * 1.1 + (x % 3) * 0.4) * 0.12;
-            const wallShade = Math.max(0.4, Math.min(0.85, 0.60 + strata));
-            tileData[idx] = Math.round(r * wallShade);
-            tileData[idx+1] = Math.round(g * wallShade);
-            tileData[idx+2] = Math.round(b * wallShade);
-            tileData[idx+3] = 255;
-          }
-        } else if (y >= wallBottom && y <= wallBottom + 3) {
-          if (noBgWall) {
-            tileData[idx] = r; tileData[idx+1] = g; tileData[idx+2] = b; tileData[idx+3] = 255;
-          } else {
-            tileData[idx] = Math.round(r * (0.45 - shadowAlpha * 0.15));
-            tileData[idx+1] = Math.round(g * (0.45 - shadowAlpha * 0.15));
-            tileData[idx+2] = Math.round(b * (0.45 - shadowAlpha * 0.15));
-            tileData[idx+3] = 255;
-          }
-        } else {
-          tileData[idx] = r; tileData[idx+1] = g; tileData[idx+2] = b; tileData[idx+3] = 255;
-        }
-      }
-
-      // 6. Lateral Ramp E→W Top (Ascending right to left)
-      else if (tileId === 'slope25d_ramp_lat_e2w_top') {
-        const rampY = Math.round(8 + (x * 16 / 31));
-        const distFromRamp = y - rampY;
-
-        if (distFromRamp < -4) {
-          if (noBgWall) {
-            applyBackgroundPixel(tileData, idx, settings, underlayData);
-          } else if (isNaturalBank) {
-            const bgShade = 0.82 + ((y % 4) * 0.04);
-            tileData[idx] = Math.round(r * bgShade);
-            tileData[idx+1] = Math.round(g * bgShade);
-            tileData[idx+2] = Math.round(b * bgShade);
-            tileData[idx+3] = 255;
-          } else {
-            const bgShade = 0.65 + ((y % 4) * 0.05);
-            tileData[idx] = Math.round(r * bgShade);
-            tileData[idx+1] = Math.round(g * bgShade);
-            tileData[idx+2] = Math.round(b * bgShade);
-            tileData[idx+3] = 255;
-          }
-        } else if (distFromRamp === -4) {
-          tileData[idx] = Math.min(255, Math.round(r * 1.35 + 30));
-          tileData[idx+1] = Math.min(255, Math.round(g * 1.35 + 30));
-          tileData[idx+2] = Math.min(255, Math.round(b * 1.35 + 30));
-          tileData[idx+3] = 255;
-        } else if (distFromRamp >= -3 && distFromRamp <= 3) {
-          const inclineLight = 0.95 + ((31 - x) / 31) * 0.2;
-          tileData[idx] = Math.min(255, Math.round(r * inclineLight));
-          tileData[idx+1] = Math.min(255, Math.round(g * inclineLight));
-          tileData[idx+2] = Math.min(255, Math.round(b * inclineLight));
-          tileData[idx+3] = 255;
-        } else if (distFromRamp === 4) {
-          tileData[idx] = outlineR; tileData[idx+1] = outlineG; tileData[idx+2] = outlineB; tileData[idx+3] = 255;
-        } else {
-          if (noBgWall) {
-            if (rampStyle === 'plank' && (x === 4 || x === 14 || x === 26) && distFromRamp <= 12) {
-              tileData[idx] = Math.round(r * 0.45);
-              tileData[idx+1] = Math.round(g * 0.45);
-              tileData[idx+2] = Math.round(b * 0.45);
-              tileData[idx+3] = 255;
-            } else {
-              applyBackgroundPixel(tileData, idx, settings, underlayData);
-            }
-          } else if (isNaturalBank) {
-            const bankShade = 0.78 - ((distFromRamp - 4) / 20) * 0.2;
-            tileData[idx] = Math.round(r * bankShade);
-            tileData[idx+1] = Math.round(g * bankShade);
-            tileData[idx+2] = Math.round(b * bankShade);
-            tileData[idx+3] = 255;
-          } else {
-            tileData[idx] = Math.round(r * 0.5);
-            tileData[idx+1] = Math.round(g * 0.5);
-            tileData[idx+2] = Math.round(b * 0.5);
-            tileData[idx+3] = 255;
-          }
-        }
-      }
-
-      // 7. Lateral Ramp E→W Wedge Wall
-      else if (tileId === 'slope25d_ramp_lat_e2w_wall') {
-        const wallBottom = Math.round(26 - (x * 20 / 31));
-
-        if (y < wallBottom) {
-          if (noBgWall) {
-            if (rampStyle === 'plank') {
-              const isPillar = (x === 4 || x === 14 || x === 26);
-              if (isPillar) {
-                tileData[idx] = Math.round(r * 0.45);
-                tileData[idx+1] = Math.round(g * 0.45);
-                tileData[idx+2] = Math.round(b * 0.45);
-                tileData[idx+3] = 255;
-              } else {
-                applyBackgroundPixel(tileData, idx, settings, underlayData);
-              }
-            } else {
-              applyBackgroundPixel(tileData, idx, settings, underlayData);
-            }
-          } else if (isNaturalBank) {
-            const bankShade = 0.88 - ((y / wallBottom) * 0.22);
-            tileData[idx] = Math.round(r * bankShade);
-            tileData[idx+1] = Math.round(g * bankShade);
-            tileData[idx+2] = Math.round(b * bankShade);
-            tileData[idx+3] = 255;
-          } else {
-            const strata = Math.sin(y * 1.1 + (x % 3) * 0.4) * 0.12;
-            const wallShade = Math.max(0.4, Math.min(0.85, 0.60 + strata));
-            tileData[idx] = Math.round(r * wallShade);
-            tileData[idx+1] = Math.round(g * wallShade);
-            tileData[idx+2] = Math.round(b * wallShade);
-            tileData[idx+3] = 255;
-          }
-        } else if (y >= wallBottom && y <= wallBottom + 3) {
-          if (noBgWall) {
-            tileData[idx] = r; tileData[idx+1] = g; tileData[idx+2] = b; tileData[idx+3] = 255;
-          } else {
-            tileData[idx] = Math.round(r * (0.45 - shadowAlpha * 0.15));
-            tileData[idx+1] = Math.round(g * (0.45 - shadowAlpha * 0.15));
-            tileData[idx+2] = Math.round(b * (0.45 - shadowAlpha * 0.15));
-            tileData[idx+3] = 255;
-          }
-        } else {
-          tileData[idx] = r; tileData[idx+1] = g; tileData[idx+2] = b; tileData[idx+3] = 255;
-        }
-      }
-
-      // 8. Rolling Hill / Mound
-      else if (tileId === 'slope25d_natural_hill') {
-        const dx = x - 13;
-        const dy = y - 11;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        let factor = 1.0;
-        if (dist < 10) {
-          factor = 1.25 - (dist / 40);
-        } else {
-          const angle = Math.atan2(dy, dx);
-          const shadowBias = (Math.sin(angle - 0.7) + 1) / 2;
-          factor = 1.0 - shadowBias * 0.35 * (dist / 22);
-        }
-
-        tileData[idx] = Math.max(0, Math.min(255, Math.round(r * factor)));
-        tileData[idx+1] = Math.max(0, Math.min(255, Math.round(g * factor)));
-        tileData[idx+2] = Math.max(0, Math.min(255, Math.round(b * factor)));
-        tileData[idx+3] = 255;
-      }
-
-      // 9. Diagonal Cliff Slope NW (Upper plateau NW, diagonal cliff drop, lower ground SE)
-      else if (tileId === 'cliff_diag_slope_nw') {
-        const diag = x + y;
-        if (diag < 16) {
-          if (noBgWall) {
-            // Freestanding open diagonal slope: upper negative space is open/transparent
-            applyBackgroundPixel(tileData, idx, settings, underlayData);
-          } else {
-            // Upper plateau
-            tileData[idx] = Math.min(255, Math.round(r * 1.08));
-            tileData[idx+1] = Math.min(255, Math.round(g * 1.08));
-            tileData[idx+2] = Math.min(255, Math.round(b * 1.08));
-            tileData[idx+3] = 255;
-          }
-        } else if (diag === 16 || diag === 17) {
-          tileData[idx] = outlineR; tileData[idx+1] = outlineG; tileData[idx+2] = outlineB; tileData[idx+3] = 255;
-        } else if (diag >= 18 && diag <= 30) {
-          if (noBgWall) {
-            // Smooth natural slope grade without dark cliff face strata
-            const slopeShade = 1.05 - ((diag - 18) / 12) * 0.25;
-            tileData[idx] = Math.round(r * slopeShade);
-            tileData[idx+1] = Math.round(g * slopeShade);
-            tileData[idx+2] = Math.round(b * slopeShade);
-          } else if (isNaturalBank) {
-            const slopeShade = 0.95 - ((diag - 18) / 12) * 0.22;
-            tileData[idx] = Math.round(r * slopeShade);
-            tileData[idx+1] = Math.round(g * slopeShade);
-            tileData[idx+2] = Math.round(b * slopeShade);
-          } else {
-            // Vertical rock strata on diagonal cliff face
-            const strata = Math.sin(y * 1.2 + (x % 3) * 0.5) * 0.15;
-            const rockShade = Math.max(0.35, Math.min(0.75, 0.55 + strata));
-            tileData[idx] = Math.round(r * rockShade);
-            tileData[idx+1] = Math.round(g * rockShade);
-            tileData[idx+2] = Math.round(b * rockShade);
-          }
-          tileData[idx+3] = 255;
-        } else if (diag >= 31 && diag <= 34) {
-          if (noBgWall) {
-            tileData[idx] = r; tileData[idx+1] = g; tileData[idx+2] = b;
-          } else {
-            tileData[idx] = Math.round(r * (0.35 + (1 - shadowAlpha) * 0.2));
-            tileData[idx+1] = Math.round(g * (0.35 + (1 - shadowAlpha) * 0.2));
-            tileData[idx+2] = Math.round(b * (0.35 + (1 - shadowAlpha) * 0.2));
-          }
-          tileData[idx+3] = 255;
-        } else {
-          // Lower ground
-          tileData[idx] = r; tileData[idx+1] = g; tileData[idx+2] = b;
-          tileData[idx+3] = 255;
-        }
-      }
-
-      // 10. Diagonal Cliff Slope NE (Upper plateau NE, diagonal cliff drop, lower ground SW)
-      else if (tileId === 'cliff_diag_slope_ne') {
-        const diag = (31 - x) + y;
-        if (diag < 16) {
-          if (noBgWall) {
-            applyBackgroundPixel(tileData, idx, settings, underlayData);
-          } else {
-            tileData[idx] = Math.min(255, Math.round(r * 1.08));
-            tileData[idx+1] = Math.min(255, Math.round(g * 1.08));
-            tileData[idx+2] = Math.min(255, Math.round(b * 1.08));
-            tileData[idx+3] = 255;
-          }
-        } else if (diag === 16 || diag === 17) {
-          tileData[idx] = outlineR; tileData[idx+1] = outlineG; tileData[idx+2] = outlineB; tileData[idx+3] = 255;
-        } else if (diag >= 18 && diag <= 30) {
-          if (noBgWall) {
-            const slopeShade = 1.05 - ((diag - 18) / 12) * 0.25;
-            tileData[idx] = Math.round(r * slopeShade);
-            tileData[idx+1] = Math.round(g * slopeShade);
-            tileData[idx+2] = Math.round(b * slopeShade);
-          } else if (isNaturalBank) {
-            const slopeShade = 0.95 - ((diag - 18) / 12) * 0.22;
-            tileData[idx] = Math.round(r * slopeShade);
-            tileData[idx+1] = Math.round(g * slopeShade);
-            tileData[idx+2] = Math.round(b * slopeShade);
-          } else {
-            const strata = Math.sin(y * 1.2 + (x % 3) * 0.5) * 0.15;
-            const rockShade = Math.max(0.35, Math.min(0.75, 0.55 + strata));
-            tileData[idx] = Math.round(r * rockShade);
-            tileData[idx+1] = Math.round(g * rockShade);
-            tileData[idx+2] = Math.round(b * rockShade);
-          }
-          tileData[idx+3] = 255;
-        } else if (diag >= 31 && diag <= 34) {
-          if (noBgWall) {
-            tileData[idx] = r; tileData[idx+1] = g; tileData[idx+2] = b;
-          } else {
-            tileData[idx] = Math.round(r * (0.35 + (1 - shadowAlpha) * 0.2));
-            tileData[idx+1] = Math.round(g * (0.35 + (1 - shadowAlpha) * 0.2));
-            tileData[idx+2] = Math.round(b * (0.35 + (1 - shadowAlpha) * 0.2));
-          }
-          tileData[idx+3] = 255;
-        } else {
-          tileData[idx] = r; tileData[idx+1] = g; tileData[idx+2] = b;
-          tileData[idx+3] = 255;
-        }
-      }
-
-      // 11. Diagonal Cliff Slope SW
-      else if (tileId === 'cliff_diag_slope_sw') {
-        const diag = (31 - y) + x;
-        if (diag < 16) {
-          if (noBgWall) {
-            applyBackgroundPixel(tileData, idx, settings, underlayData);
-          } else {
-            tileData[idx] = Math.min(255, Math.round(r * 1.08));
-            tileData[idx+1] = Math.min(255, Math.round(g * 1.08));
-            tileData[idx+2] = Math.min(255, Math.round(b * 1.08));
-          }
-        } else if (diag === 16 || diag === 17) {
-          tileData[idx] = outlineR; tileData[idx+1] = outlineG; tileData[idx+2] = outlineB;
-        } else if (diag >= 18 && diag <= 28) {
-          if (noBgWall) {
-            const slopeShade = 1.02 - ((diag - 18) / 10) * 0.22;
-            tileData[idx] = Math.round(r * slopeShade);
-            tileData[idx+1] = Math.round(g * slopeShade);
-            tileData[idx+2] = Math.round(b * slopeShade);
-          } else {
-            const rockShade = 0.58 + ((x % 4) * 0.04);
-            tileData[idx] = Math.round(r * rockShade);
-            tileData[idx+1] = Math.round(g * rockShade);
-            tileData[idx+2] = Math.round(b * rockShade);
-          }
-        } else {
-          tileData[idx] = r; tileData[idx+1] = g; tileData[idx+2] = b;
-        }
-        tileData[idx+3] = 255;
-      }
-
-      // 12. Diagonal Cliff Slope SE
-      else if (tileId === 'cliff_diag_slope_se') {
-        const diag = (31 - y) + (31 - x);
-        if (diag < 16) {
-          if (noBgWall) {
-            applyBackgroundPixel(tileData, idx, settings, underlayData);
-          } else {
-            tileData[idx] = Math.min(255, Math.round(r * 1.08));
-            tileData[idx+1] = Math.min(255, Math.round(g * 1.08));
-            tileData[idx+2] = Math.min(255, Math.round(b * 1.08));
-          }
-        } else if (diag === 16 || diag === 17) {
-          tileData[idx] = outlineR; tileData[idx+1] = outlineG; tileData[idx+2] = outlineB;
-        } else if (diag >= 18 && diag <= 28) {
-          if (noBgWall) {
-            const slopeShade = 1.02 - ((diag - 18) / 10) * 0.22;
-            tileData[idx] = Math.round(r * slopeShade);
-            tileData[idx+1] = Math.round(g * slopeShade);
-            tileData[idx+2] = Math.round(b * slopeShade);
-          } else {
-            const rockShade = 0.58 + ((x % 4) * 0.04);
-            tileData[idx] = Math.round(r * rockShade);
-            tileData[idx+1] = Math.round(g * rockShade);
-            tileData[idx+2] = Math.round(b * rockShade);
-          }
-        } else {
-          tileData[idx] = r; tileData[idx+1] = g; tileData[idx+2] = b;
-        }
-        tileData[idx+3] = 255;
-      }
-
-      // 13. Diagonal Cliff Lip NW
-      else if (tileId === 'cliff_diag_top_nw') {
-        const diag = x + y;
-        if (diag < 20) {
-          tileData[idx] = r; tileData[idx+1] = g; tileData[idx+2] = b;
-        } else if (diag >= 20 && diag <= 22) {
-          tileData[idx] = Math.round(r * 0.45);
-          tileData[idx+1] = Math.round(g * 0.45);
-          tileData[idx+2] = Math.round(b * 0.45);
-        } else {
-          const depth = 0.55 + ((diag - 22) / 20);
-          tileData[idx] = Math.round(r * depth);
-          tileData[idx+1] = Math.round(g * depth);
-          tileData[idx+2] = Math.round(b * depth);
-        }
-        tileData[idx+3] = 255;
-      }
-
-      // 14. Diagonal Cliff Lip NE
-      else if (tileId === 'cliff_diag_top_ne') {
-        const diag = (31 - x) + y;
-        if (diag < 20) {
-          tileData[idx] = r; tileData[idx+1] = g; tileData[idx+2] = b;
-        } else if (diag >= 20 && diag <= 22) {
-          tileData[idx] = Math.round(r * 0.45);
-          tileData[idx+1] = Math.round(g * 0.45);
-          tileData[idx+2] = Math.round(b * 0.45);
-        } else {
-          const depth = 0.55 + ((diag - 22) / 20);
-          tileData[idx] = Math.round(r * depth);
-          tileData[idx+1] = Math.round(g * depth);
-          tileData[idx+2] = Math.round(b * depth);
-        }
-        tileData[idx+3] = 255;
-      }
-
-      // 15. Diagonal Cliff Base NW
-      else if (tileId === 'cliff_diag_base_nw') {
-        const diag = x + y;
-        if (diag < 10) {
-          const wallShade = 0.65 + (diag / 20);
-          tileData[idx] = Math.round(r * wallShade);
-          tileData[idx+1] = Math.round(g * wallShade);
-          tileData[idx+2] = Math.round(b * wallShade);
-        } else if (diag >= 10 && diag <= 15) {
-          tileData[idx] = Math.round(r * (0.35 + (1 - shadowAlpha) * 0.2));
-          tileData[idx+1] = Math.round(g * (0.35 + (1 - shadowAlpha) * 0.2));
-          tileData[idx+2] = Math.round(b * (0.35 + (1 - shadowAlpha) * 0.2));
-        } else {
-          tileData[idx] = r; tileData[idx+1] = g; tileData[idx+2] = b;
-        }
-        tileData[idx+3] = 255;
-      }
-
-      // 16. Diagonal Cliff Base NE
-      else if (tileId === 'cliff_diag_base_ne') {
-        const diag = (31 - x) + y;
-        if (diag < 10) {
-          const wallShade = 0.65 + (diag / 20);
-          tileData[idx] = Math.round(r * wallShade);
-          tileData[idx+1] = Math.round(g * wallShade);
-          tileData[idx+2] = Math.round(b * wallShade);
-        } else if (diag >= 10 && diag <= 15) {
-          tileData[idx] = Math.round(r * (0.35 + (1 - shadowAlpha) * 0.2));
-          tileData[idx+1] = Math.round(g * (0.35 + (1 - shadowAlpha) * 0.2));
-          tileData[idx+2] = Math.round(b * (0.35 + (1 - shadowAlpha) * 0.2));
-        } else {
-          tileData[idx] = r; tileData[idx+1] = g; tileData[idx+2] = b;
-        }
-        tileData[idx+3] = 255;
-      }
-    }
-  }
+  renderDetailed25dSlope(
+    tileData,
+    baseData,
+    tileId,
+    settings,
+    outlineR,
+    outlineG,
+    outlineB,
+    highlightRgb,
+    underlayData
+  );
 }

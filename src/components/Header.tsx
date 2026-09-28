@@ -24,9 +24,9 @@ export const Header: React.FC<HeaderProps> = ({
           <Layers className="w-4 h-4 text-white" />
         </div>
         <span className="text-base font-semibold tracking-tight text-white flex items-center gap-2">
-          TileForge 32
-          <span className="text-[11px] font-normal px-2 py-0.5 rounded text-amber-300 bg-amber-950/60 border border-amber-800/40">
-            RPG Top-Down
+          TileForge 2.5D
+          <span className="text-[11px] font-medium px-2 py-0.5 rounded text-emerald-300 bg-emerald-950/60 border border-emerald-800/40">
+            30° Bird's-Eye View · Non-Isometric Grid
           </span>
         </span>
       </div>

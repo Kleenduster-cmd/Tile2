@@ -33,6 +33,7 @@ export const MapPlaytester: React.FC<MapPlaytesterProps> = ({ tiles }) => {
   const [heroPos, setHeroPos] = useState({ x: 8.5 * TILE_PX, y: 5.5 * TILE_PX });
   const [heroDirection, setHeroDirection] = useState<'down' | 'up' | 'left' | 'right'>('down');
   const [heroFrame, setHeroFrame] = useState(0);
+  const [heroElevation, setHeroElevation] = useState<0 | 1>(1);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const keysPressed = useRef<{ [key: string]: boolean }>({});
@@ -58,11 +59,33 @@ export const MapPlaytester: React.FC<MapPlaytesterProps> = ({ tiles }) => {
     loadMapPreset('slopes25d');
   }, []);
 
-  const loadMapPreset = (preset: 'pokemon' | 'dragon_quest' | 'open_slopes' | 'slopes25d' | 'plateau' | 'island' | 'path' | 'blank') => {
+  const loadMapPreset = (preset: 'pokemon' | 'dragon_quest' | 'grand_stairs' | 'open_slopes' | 'slopes25d' | 'plateau' | 'island' | 'path' | 'blank') => {
     const newTerrain: boolean[][] = Array.from({ length: MAP_ROWS }, () => Array(MAP_COLS).fill(false));
     const newStamps: (string | null)[][] = Array.from({ length: MAP_ROWS }, () => Array(MAP_COLS).fill(null));
 
-    if (preset === 'pokemon') {
+    if (preset === 'grand_stairs') {
+      // Grand Temple Terrace with Double-Wide Detailed Stairs and Flanking Ramps
+      for (let r = 1; r <= 3; r++) {
+        for (let c = 3; c <= 14; c++) {
+          newTerrain[r][c] = true;
+        }
+      }
+      // Double-wide grand carved stairs ascending cliff center
+      newStamps[4][8] = 'cliff_stairs';
+      newStamps[4][9] = 'cliff_stairs';
+      // Lateral ramps on terrace flanks
+      newStamps[3][3] = 'slope25d_ramp_lat_w2e_top';
+      newStamps[4][3] = 'slope25d_ramp_lat_w2e_wall';
+      newStamps[3][14] = 'slope25d_ramp_lat_e2w_top';
+      newStamps[4][14] = 'slope25d_ramp_lat_e2w_wall';
+      // Diagonal cliff slopes
+      newStamps[1][3] = 'cliff_diag_slope_nw';
+      newStamps[1][14] = 'cliff_diag_slope_ne';
+      // Lower courtyard elevation hills
+      newStamps[9][5] = 'slope25d_natural_hill';
+      newStamps[9][12] = 'slope25d_natural_hill';
+      setHeroPos({ x: 9 * TILE_PX, y: 7 * TILE_PX });
+    } else if (preset === 'pokemon') {
       // Pokémon Diamond & Pearl Sinnoh Route (Mt. Coronet / Cycling Road Mud Slope & Jump Ledges)
       // Upper plateau / terrace
       for (let r = 1; r <= 3; r++) {
@@ -338,8 +361,49 @@ export const MapPlaytester: React.FC<MapPlaytesterProps> = ({ tiles }) => {
         const newY = Math.max(12, Math.min(canvas.height - 24, heroPos.y + dy));
         setHeroPos({ x: newX, y: newY });
 
-        // Draw Hero Sprite
-        drawHero(ctx, heroPos.x, heroPos.y, heroDirection, heroFrame);
+        // Calculate 2.5D elevation based on current tile/ramp
+        const cellC = Math.floor(newX / TILE_PX);
+        const cellR = Math.floor(newY / TILE_PX);
+        const currStamp = (cellR >= 0 && cellR < MAP_ROWS && cellC >= 0 && cellC < MAP_COLS) ? stampGrid[cellR][cellC] : null;
+        const isTerrainCell = (cellR >= 0 && cellR < MAP_ROWS && cellC >= 0 && cellC < MAP_COLS) && terrainGrid[cellR][cellC];
+
+        if (currStamp && (currStamp.includes('ramp') || currStamp.includes('stairs') || currStamp.includes('slope'))) {
+          // Walking on stairs/ramp
+          if (dy < 0) {
+            setHeroElevation(1); // climbing up towards plateau
+          } else if (dy > 0) {
+            setHeroElevation(0); // descending down towards floor
+          }
+        } else if (isTerrainCell) {
+          setHeroElevation(1);
+        } else {
+          setHeroElevation(0);
+        }
+
+        // Draw Hero Sprite with 2.5D elevation
+        drawHero(ctx, newX, newY, heroDirection, heroFrame, heroElevation);
+
+        // 2.5D Elevation & 30° Bird's-Eye Status HUD
+        ctx.save();
+        ctx.fillStyle = 'rgba(15, 17, 23, 0.90)';
+        ctx.strokeStyle = '#2d3342';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.roundRect(10, 10, 310, 26, 6);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = heroElevation === 1 ? '#34d399' : '#fbbf24';
+        ctx.font = 'bold 11px system-ui, sans-serif';
+        ctx.fillText(
+          heroElevation === 1 ? '▲ Level 1: Plateau' : '▼ Level 0: Ground',
+          18,
+          27
+        );
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = '10px monospace';
+        ctx.fillText('30° Bird\'s-Eye · Non-Isometric', 132, 27);
+        ctx.restore();
       }
 
       animId = requestAnimationFrame(loop);
@@ -347,26 +411,38 @@ export const MapPlaytester: React.FC<MapPlaytesterProps> = ({ tiles }) => {
 
     animId = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(animId);
-  }, [terrainGrid, stampGrid, isHeroPlaying, heroPos, heroDirection, heroFrame, showGridLines]);
+  }, [terrainGrid, stampGrid, isHeroPlaying, heroPos, heroDirection, heroFrame, heroElevation, showGridLines]);
 
-  // Cute 32x32 retro pixel hero renderer
+  // Authentic 2.5D top-down retro pixel hero renderer
   const drawHero = (
     ctx: CanvasRenderingContext2D,
     x: number,
     y: number,
     dir: 'down' | 'up' | 'left' | 'right',
-    frame: number
+    frame: number,
+    elevation: number
   ) => {
     ctx.save();
-    ctx.translate(Math.round(x) - 12, Math.round(y) - 16);
+    // In 2.5D top-down view, elevated characters are offset upwards by 6px
+    const elevYOffset = elevation === 1 ? -6 : 0;
+    ctx.translate(Math.round(x) - 12, Math.round(y) - 16 + elevYOffset);
 
-    // Drop shadow
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+    // 2.5D Ground Drop Shadow (stays at ground level, darker when on ground, broader when elevated)
+    ctx.fillStyle = elevation === 1 ? 'rgba(0, 0, 0, 0.35)' : 'rgba(0, 0, 0, 0.5)';
     ctx.beginPath();
-    ctx.ellipse(12, 28, 9, 4, 0, 0, Math.PI * 2);
+    ctx.ellipse(12, 28 - elevYOffset, elevation === 1 ? 11 : 9, elevation === 1 ? 5 : 4, 0, 0, Math.PI * 2);
     ctx.fill();
 
     const bob = (frame % 2 === 1) ? 1 : 0;
+
+    // Elevation Level Tag
+    if (elevation === 1) {
+      ctx.fillStyle = 'rgba(16, 185, 129, 0.95)';
+      ctx.fillRect(5, -7, 14, 7);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 6px monospace';
+      ctx.fillText('Lv.1', 6, -2);
+    }
 
     // Red Hood / Cap
     ctx.fillStyle = '#e11d48';
@@ -574,6 +650,12 @@ export const MapPlaytester: React.FC<MapPlaytesterProps> = ({ tiles }) => {
         {/* Map Preset Buttons */}
         <div className="flex items-center gap-1.5 flex-wrap">
           <span className="text-[11px] text-zinc-500">Presets:</span>
+          <button
+            onClick={() => loadMapPreset('grand_stairs')}
+            className="px-2.5 py-1 text-xs rounded bg-purple-950/90 border border-purple-400 text-purple-200 hover:bg-purple-900 font-semibold transition-all flex items-center gap-1 shadow-sm"
+          >
+            🏛️ Grand Stairs & Slopes
+          </button>
           <button
             onClick={() => loadMapPreset('pokemon')}
             className="px-2.5 py-1 text-xs rounded bg-amber-950/90 border border-amber-400 text-amber-300 hover:bg-amber-900 font-semibold transition-all flex items-center gap-1 shadow-sm"

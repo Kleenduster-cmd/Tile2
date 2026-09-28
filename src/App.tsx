@@ -24,18 +24,28 @@ export default function App() {
 
   // Generation & Shading Settings
   const [settings, setSettings] = useState<TileGeneratorSettings>({
-    edgeStyle: 'pixel_outline',
+    projectionMode: 'topdown_25d',
+    projectionAngle: 30, // 30° Top-Down Bird's-Eye View (Non-Isometric Grid)
+    edgeStyle: 'cliff_drop',
     outlineColor: '#000000',
     outlineOpacity: 0.85,
     highlightRim: true,
     highlightColor: '#ffffff',
     edgeThickness: 1,
     cornerRoundness: 4,
-    cliffHeight: 14,
-    cliffShadowIntensity: 0.65,
+    cliffHeight: 16,
+    cliffShadowIntensity: 0.7,
+    cliffLedgeDrop: true,
     grassBladeFrequency: 2,
     rampSurfaceType: 'natural',
     slopeBackgroundWall: 'none', // Slopes with no background wall (freestanding open slopes & ramps)
+    slopeDepthIntensity: 0.85,
+    slopeWheelRuts: true,
+    slope3dCurbs: true,
+    slopeTrestleBracing: true,
+    stairStyle: 'carved_stone',
+    stairRailing: 'stone_balustrade',
+    wallStrataStyle: 'rock_strata',
     underlayType: 'transparent',
     underlayPresetId: 'ancient_cobblestone',
     underlayColor: '#17191e',

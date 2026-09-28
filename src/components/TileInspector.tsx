@@ -236,12 +236,33 @@ export const TileInspector: React.FC<TileInspectorProps> = ({
                 <span className="font-medium text-zinc-200 uppercase">{tile.category}</span>
               </div>
               <div className="flex justify-between">
+                <span>Projection:</span>
+                <span className="font-medium text-amber-300">30° Bird's-Eye View</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Grid Architecture:</span>
+                <span className="font-mono text-zinc-300">Orthogonal (Non-Isometric)</span>
+              </div>
+              <div className="flex justify-between">
+                <span>2.5D Function:</span>
+                <span className="font-semibold text-emerald-400">
+                  {tile.id.includes('ramp') ? '2.5D Incline Ramp (Lv.0 ↔ Lv.1)' :
+                   tile.id.includes('stairs') ? '2.5D Carved Stairway (Lv.0 ↔ Lv.1)' :
+                   tile.id === 'edge_bottom' ? '2.5D South Drop Facade (Cliff)' :
+                   tile.id.includes('corner_outer_b') ? '2.5D Cliff Corner Drop' :
+                   tile.id === 'isolated' ? '2.5D Raised Cube Block' :
+                   tile.category === 'cliffs' ? '2.5D Vertical Cliff Wall' :
+                   tile.category === 'slopes' ? '2.5D Diagonal Slope (30° Angle)' :
+                   '2.5D Plateau Surface'}
+                </span>
+              </div>
+              <div className="flex justify-between">
                 <span>Sheet Coordinates:</span>
                 <span className="font-mono text-amber-400">Col {tile.exportCol}, Row {tile.exportRow}</span>
               </div>
               <div className="flex justify-between">
-                <span>Pixel Resolution:</span>
-                <span className="font-mono text-zinc-200">32 × 32 px</span>
+                <span>Resolution:</span>
+                <span className="font-mono text-emerald-400 font-semibold">32 × 32 px (Retained)</span>
               </div>
             </div>
           </div>
@@ -250,24 +271,11 @@ export const TileInspector: React.FC<TileInspectorProps> = ({
           <div className="flex items-center gap-2 pt-2 border-t border-[#22252e]">
             <button
               onClick={() => downloadTileAsPng(tile, 1)}
-              className="flex-1 py-1.5 px-2.5 text-xs font-semibold text-zinc-950 bg-amber-400 hover:bg-amber-300 rounded-lg transition-colors flex items-center justify-center gap-1.5"
+              className="flex-1 py-2 px-3 text-xs font-semibold text-zinc-950 bg-amber-400 hover:bg-amber-300 rounded-lg transition-colors flex items-center justify-center gap-1.5 shadow-sm"
+              title="Download single tile retaining native 32×32 pixel resolution"
             >
               <Download className="w-3.5 h-3.5" />
-              Download 32px
-            </button>
-            <button
-              onClick={() => downloadTileAsPng(tile, 2)}
-              className="py-1.5 px-3 text-xs font-medium text-zinc-300 bg-[#222632] hover:bg-[#2c3242] border border-[#333948] rounded-lg transition-colors"
-              title="Download scaled 2x (64x64) crisp nearest-neighbor"
-            >
-              64px (2×)
-            </button>
-            <button
-              onClick={() => downloadTileAsPng(tile, 4)}
-              className="py-1.5 px-3 text-xs font-medium text-zinc-300 bg-[#222632] hover:bg-[#2c3242] border border-[#333948] rounded-lg transition-colors"
-              title="Download scaled 4x (128x128) crisp nearest-neighbor"
-            >
-              128px (4×)
+              Download 32×32 Tile PNG
             </button>
           </div>
         </div>
