@@ -83,9 +83,3 @@ export interface PixelPreset {
   // 32x32 array of color strings or procedural generator
   generate: () => ImageData;
 }
-
-export interface MapCell {
-  tileId: string;
-  isSolid: boolean;
-  elevation: number;
-}

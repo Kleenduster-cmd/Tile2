@@ -1,76 +1,20 @@
 import React from 'react';
-import { Download, Sparkles, Map, Layers, Palette } from 'lucide-react';
+import { Download, Sparkles, Palette } from 'lucide-react';
 
 interface HeaderProps {
-  activeTab: 'studio' | 'map' | 'export';
-  setActiveTab: (tab: 'studio' | 'map' | 'export') => void;
   onOpenExport: () => void;
   onOpenPixelEditor: () => void;
   onQuickExport32x32?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
-  activeTab,
-  setActiveTab,
   onOpenExport,
   onOpenPixelEditor,
   onQuickExport32x32,
 }) => {
   return (
-    <header className="flex items-center justify-between px-6 py-3.5 bg-[#14161a] border-b border-[#252830] select-none sticky top-0 z-30">
-      {/* Zone 1: Single text element wordmark */}
-      <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center shadow-sm shadow-amber-950/40">
-          <Layers className="w-4 h-4 text-white" />
-        </div>
-        <span className="text-base font-semibold tracking-tight text-white flex items-center gap-2">
-          TileForge 2.5D
-          <span className="text-[11px] font-medium px-2 py-0.5 rounded text-emerald-300 bg-emerald-950/60 border border-emerald-800/40">
-            30° Bird's-Eye View · Non-Isometric Grid
-          </span>
-        </span>
-      </div>
-
-      {/* Zone 2: Navigation Links / Mode Selectors */}
-      <nav className="flex items-center gap-1 bg-[#1a1d24] p-1 rounded-lg border border-[#2b2f3a]">
-        <button
-          onClick={() => setActiveTab('studio')}
-          className={`flex items-center gap-2 px-3.5 py-1.5 text-xs font-medium rounded-md transition-all whitespace-nowrap ${
-            activeTab === 'studio'
-              ? 'bg-[#282c37] text-white shadow-sm'
-              : 'text-zinc-400 hover:text-zinc-200'
-          }`}
-        >
-          <Layers className="w-3.5 h-3.5 text-amber-400" />
-          Tileset Studio
-        </button>
-
-        <button
-          onClick={() => setActiveTab('map')}
-          className={`flex items-center gap-2 px-3.5 py-1.5 text-xs font-medium rounded-md transition-all whitespace-nowrap ${
-            activeTab === 'map'
-              ? 'bg-[#282c37] text-white shadow-sm'
-              : 'text-zinc-400 hover:text-zinc-200'
-          }`}
-        >
-          <Map className="w-3.5 h-3.5 text-emerald-400" />
-          Map Playtester
-        </button>
-
-        <button
-          onClick={() => setActiveTab('export')}
-          className={`flex items-center gap-2 px-3.5 py-1.5 text-xs font-medium rounded-md transition-all whitespace-nowrap ${
-            activeTab === 'export'
-              ? 'bg-[#282c37] text-white shadow-sm'
-              : 'text-zinc-400 hover:text-zinc-200'
-          }`}
-        >
-          <Sparkles className="w-3.5 h-3.5 text-sky-400" />
-          Export & Formats
-        </button>
-      </nav>
-
-      {/* Zone 3: Primary Actions */}
+    <header className="flex items-center justify-end px-6 py-3 bg-[#14161a] border-b border-[#252830] select-none sticky top-0 z-30">
+      {/* Primary Actions & Export */}
       <div className="flex items-center gap-2.5">
         <button
           onClick={onOpenPixelEditor}
@@ -78,14 +22,14 @@ export const Header: React.FC<HeaderProps> = ({
           title="Open 32x32 Pixel Art Painter"
         >
           <Palette className="w-3.5 h-3.5 text-amber-400" />
-          Edit Base Pixel Art
+          <span>Edit Base Pixel Art</span>
         </button>
 
         {onQuickExport32x32 && (
           <button
             onClick={onQuickExport32x32}
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-emerald-300 bg-emerald-950/70 border border-emerald-500/50 rounded-lg hover:bg-emerald-900 transition-colors shadow-sm whitespace-nowrap"
-            title="Directly download all 64 tiles as a 32x32 transparent PNG (256x256 px image)"
+            title="Download all 64 tiles as a strict 32x32 transparent PNG (256x256 px image)"
           >
             <Download className="w-3.5 h-3.5 text-emerald-400" />
             <span>Export 32×32 PNG</span>
@@ -98,9 +42,10 @@ export const Header: React.FC<HeaderProps> = ({
         <button
           onClick={onOpenExport}
           className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-zinc-950 bg-amber-400 rounded-lg hover:bg-amber-300 transition-colors shadow-sm shadow-amber-400/20 whitespace-nowrap"
+          title="Open Export Modal for 32x32 Spritesheets, 64-Tile ZIP, Tiled TSX, and JSON"
         >
-          <Download className="w-3.5 h-3.5" />
-          All Formats
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>Export Center</span>
         </button>
       </div>
     </header>

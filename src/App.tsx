@@ -4,18 +4,15 @@ import { BaseImagePanel } from './components/BaseImagePanel';
 import { StyleControls } from './components/StyleControls';
 import { TilesetGrid } from './components/TilesetGrid';
 import { TileInspector } from './components/TileInspector';
-import { MapPlaytester } from './components/MapPlaytester';
 import { PixelEditorModal } from './components/PixelEditorModal';
 import { ExportModal } from './components/ExportModal';
 import { PRESET_TEXTURES } from './utils/pixelPresets';
 import { generateTileset } from './utils/tileGenerator';
 import { download32x32TransparentTileset } from './utils/exportUtils';
 import { GeneratedTile, TileGeneratorSettings } from './types/tileset';
-import { Layers, Map, Sparkles, Sliders, CheckCircle2 } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'studio' | 'map' | 'export'>('studio');
-
   // Base 32x32 terrain texture
   const [baseImage, setBaseImage] = useState<ImageData>(() => {
     return PRESET_TEXTURES[0].generate();
@@ -39,7 +36,7 @@ export default function App() {
     grassBladeFrequency: 2,
     rampSurfaceType: 'natural',
     slopeBackgroundWall: 'none', // Slopes with no background wall (freestanding open slopes & ramps)
-    slopeDepthIntensity: 0.85,
+    slopeDepthIntensity: 0.95,
     slopeWheelRuts: true,
     slope3dCurbs: true,
     slopeTrestleBracing: true,
@@ -102,14 +99,6 @@ export default function App() {
     <div className="min-h-screen bg-[#101215] text-[#e3e6ed] flex flex-col font-sans">
       {/* Top Bar Header */}
       <Header
-        activeTab={activeTab}
-        setActiveTab={(tab) => {
-          if (tab === 'export') {
-            setIsExportOpen(true);
-          } else {
-            setActiveTab(tab);
-          }
-        }}
         onOpenExport={() => setIsExportOpen(true)}
         onOpenPixelEditor={() => setIsPixelEditorOpen(true)}
         onQuickExport32x32={handleQuickExport32x32}
@@ -125,52 +114,43 @@ export default function App() {
 
       {/* Main Studio Content */}
       <main className="flex-1 max-w-[1520px] w-full mx-auto p-4 md:p-6 flex flex-col gap-6">
-        {activeTab === 'studio' && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* Left Column: Base Image & Generation Controls (4 cols) */}
-            <div className="lg:col-span-5 xl:col-span-4 flex flex-col gap-5">
-              <BaseImagePanel
-                baseImage={baseImage}
-                onUpdateBaseImage={handleUpdateBaseImage}
-                onOpenPixelEditor={() => setIsPixelEditorOpen(true)}
-              />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Left Column: Base Image & Generation Controls (4 cols) */}
+          <div className="lg:col-span-5 xl:col-span-4 flex flex-col gap-5">
+            <BaseImagePanel
+              baseImage={baseImage}
+              onUpdateBaseImage={handleUpdateBaseImage}
+              onOpenPixelEditor={() => setIsPixelEditorOpen(true)}
+            />
 
-              <StyleControls
-                settings={settings}
-                onChange={setSettings}
-              />
-            </div>
-
-            {/* Right Column: Tileset Grid & Tile Inspector (8 cols) */}
-            <div className="lg:col-span-7 xl:col-span-8 flex flex-col gap-5">
-              {/* Detailed Tile Inspector (Zoomed 8x view) */}
-              {selectedTile && (
-                <TileInspector
-                  tile={selectedTile}
-                  onClose={() => setSelectedTileId(null)}
-                  onUpdateTile={handleUpdateSingleTile}
-                />
-              )}
-
-              {/* Complete Generated Tileset Catalog */}
-              <TilesetGrid
-                tiles={tiles}
-                selectedTileId={selectedTileId}
-                onSelectTile={(tile) => setSelectedTileId(tile.id)}
-                slopeBackgroundWall={settings.slopeBackgroundWall}
-                onUpdateSlopeBackgroundWall={(val) => setSettings((s) => ({ ...s, slopeBackgroundWall: val }))}
-                onExportTransparentTileset={handleQuickExport32x32}
-              />
-            </div>
+            <StyleControls
+              settings={settings}
+              onChange={setSettings}
+            />
           </div>
-        )}
 
-        {/* Map Playtester Tab */}
-        {activeTab === 'map' && (
-          <div className="flex flex-col gap-6">
-            <MapPlaytester tiles={tiles} />
+          {/* Right Column: Tileset Grid & Tile Inspector (8 cols) */}
+          <div className="lg:col-span-7 xl:col-span-8 flex flex-col gap-5">
+            {/* Detailed Tile Inspector (Zoomed 8x view) */}
+            {selectedTile && (
+              <TileInspector
+                tile={selectedTile}
+                onClose={() => setSelectedTileId(null)}
+                onUpdateTile={handleUpdateSingleTile}
+              />
+            )}
+
+            {/* Complete Generated Tileset Catalog */}
+            <TilesetGrid
+              tiles={tiles}
+              selectedTileId={selectedTileId}
+              onSelectTile={(tile) => setSelectedTileId(tile.id)}
+              slopeBackgroundWall={settings.slopeBackgroundWall}
+              onUpdateSlopeBackgroundWall={(val) => setSettings((s) => ({ ...s, slopeBackgroundWall: val }))}
+              onExportTransparentTileset={handleQuickExport32x32}
+            />
           </div>
-        )}
+        </div>
       </main>
 
       {/* Modals */}

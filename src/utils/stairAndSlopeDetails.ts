@@ -304,619 +304,891 @@ export function renderDetailed25dSlope(
       const g = baseData[idx + 1];
       const b = baseData[idx + 2];
 
-      // 1. VERTICAL RAMP (N-S FULL 1-TILE CLIMB)
+      // 1. VERTICAL RAMP (TOP-DOWN RPG VIEW: 1-TILE STRAIGHT RAMP)
       if (tileId === 'slope25d_ramp_v_full') {
-        const leftMargin = 5;
-        const rightMargin = 26;
+        const leftMargin = 6;
+        const rightMargin = 25;
 
         if (x < leftMargin) {
           if (noBgWall) {
-            if (x < 2) {
+            if (x < leftMargin - 2) {
               applyBgPixel(tileData, idx, settings, underlayData);
-            } else if (x === 2) {
-              tileData[idx] = outlineR; tileData[idx + 1] = outlineG; tileData[idx + 2] = outlineB; tileData[idx + 3] = 255;
-            } else if (x === 3) {
-              // 3D Curb sunlit coping
-              tileData[idx] = Math.min(255, Math.round(r * 1.35 + highlightRgb[0] * 0.25));
-              tileData[idx + 1] = Math.min(255, Math.round(g * 1.35 + highlightRgb[1] * 0.25));
-              tileData[idx + 2] = Math.min(255, Math.round(b * 1.35 + highlightRgb[2] * 0.25));
+            } else if (x === leftMargin - 2) {
+              tileData[idx] = Math.min(255, Math.round(r * 1.25 + highlightRgb[0] * 0.20));
+              tileData[idx + 1] = Math.min(255, Math.round(g * 1.25 + highlightRgb[1] * 0.20));
+              tileData[idx + 2] = Math.min(255, Math.round(b * 1.25 + highlightRgb[2] * 0.20));
               tileData[idx + 3] = 255;
-            } else { // x === 4
-              tileData[idx] = Math.round(r * 0.7);
-              tileData[idx + 1] = Math.round(g * 0.7);
-              tileData[idx + 2] = Math.round(b * 0.7);
-              tileData[idx + 3] = 255;
-            }
-          } else if (isNaturalBank) {
-            const bankShade = 0.82 + (y / 80);
-            tileData[idx] = Math.round(r * bankShade);
-            tileData[idx + 1] = Math.round(g * bankShade);
-            tileData[idx + 2] = Math.round(b * bankShade);
-            tileData[idx + 3] = 255;
-          } else {
-            // Retaining cliff wall
-            if (x === 0) {
-              tileData[idx] = 0; tileData[idx + 1] = 0; tileData[idx + 2] = 0; tileData[idx + 3] = 0;
-            } else if (x === leftMargin - 1) {
-              tileData[idx] = outlineR; tileData[idx + 1] = outlineG; tileData[idx + 2] = outlineB; tileData[idx + 3] = 255;
             } else {
-              const wallShade = 0.55 + (y / 64);
-              tileData[idx] = Math.round(r * wallShade);
-              tileData[idx + 1] = Math.round(g * wallShade);
-              tileData[idx + 2] = Math.round(b * wallShade);
-              tileData[idx + 3] = 255;
+              tileData[idx] = outlineR; tileData[idx + 1] = outlineG; tileData[idx + 2] = outlineB; tileData[idx + 3] = 255;
             }
+          } else {
+            const isStrata = (y % 6 === 0);
+            const wallShade = isStrata ? 0.44 : 0.60;
+            tileData[idx] = Math.round(r * wallShade);
+            tileData[idx + 1] = Math.round(g * wallShade);
+            tileData[idx + 2] = Math.round(b * wallShade);
+            tileData[idx + 3] = 255;
           }
         } else if (x > rightMargin) {
           if (noBgWall) {
-            if (x === 27) {
-              tileData[idx] = Math.round(r * 0.65);
-              tileData[idx + 1] = Math.round(g * 0.65);
-              tileData[idx + 2] = Math.round(b * 0.65);
-              tileData[idx + 3] = 255;
-            } else if (x === 28) {
-              // Shaded right curb coping
-              tileData[idx] = Math.round(r * 0.78);
-              tileData[idx + 1] = Math.round(g * 0.78);
-              tileData[idx + 2] = Math.round(b * 0.78);
-              tileData[idx + 3] = 255;
-            } else if (x === 29) {
+            if (x === rightMargin + 1) {
               tileData[idx] = outlineR; tileData[idx + 1] = outlineG; tileData[idx + 2] = outlineB; tileData[idx + 3] = 255;
+            } else if (x === rightMargin + 2) {
+              tileData[idx] = Math.round(r * 0.72);
+              tileData[idx + 1] = Math.round(g * 0.72);
+              tileData[idx + 2] = Math.round(b * 0.72);
+              tileData[idx + 3] = 255;
             } else {
               applyBgPixel(tileData, idx, settings, underlayData);
             }
-          } else if (isNaturalBank) {
-            const bankShade = 0.80 + (y / 80);
-            tileData[idx] = Math.round(r * bankShade);
-            tileData[idx + 1] = Math.round(g * bankShade);
-            tileData[idx + 2] = Math.round(b * bankShade);
-            tileData[idx + 3] = 255;
           } else {
-            if (x === 31) {
-              tileData[idx] = 0; tileData[idx + 1] = 0; tileData[idx + 2] = 0; tileData[idx + 3] = 0;
-            } else if (x === rightMargin + 1) {
-              tileData[idx] = outlineR; tileData[idx + 1] = outlineG; tileData[idx + 2] = outlineB; tileData[idx + 3] = 255;
-            } else {
-              const wallShade = 0.50 + (y / 64);
-              tileData[idx] = Math.round(r * wallShade);
-              tileData[idx + 1] = Math.round(g * wallShade);
-              tileData[idx + 2] = Math.round(b * wallShade);
-              tileData[idx + 3] = 255;
-            }
+            const isStrata = (y % 6 === 0);
+            const wallShade = isStrata ? 0.38 : 0.52;
+            tileData[idx] = Math.round(r * wallShade);
+            tileData[idx + 1] = Math.round(g * wallShade);
+            tileData[idx + 2] = Math.round(b * wallShade);
+            tileData[idx + 3] = 255;
           }
         } else {
-          // Ramp Bed
-          const elevLight = (1.20 + 0.12 * depthIntensity) - (y / 31) * (0.36 * depthIntensity);
+          // Top-down RPG ramp path
+          if (y === 0) {
+            // Flush entrance meeting upper ground floor with ZERO gap
+            tileData[idx] = r; tileData[idx + 1] = g; tileData[idx + 2] = b; tileData[idx + 3] = 255;
+          } else if (y === 31) {
+            // Flush exit meeting lower ground floor with ZERO gap
+            tileData[idx] = r; tileData[idx + 1] = g; tileData[idx + 2] = b; tileData[idx + 3] = 255;
+          } else {
+            const slopeT = y / 31;
+            const elevLight = 1.15 - slopeT * (0.30 * depthIntensity);
+            let pr = Math.min(255, Math.round(r * elevLight));
+            let pg = Math.min(255, Math.round(g * elevLight));
+            let pb = Math.min(255, Math.round(b * elevLight));
+
+            const isTread = (y % 4 === 0);
+            const isShadow = (y % 4 === 2);
+            if (isTread) {
+              pr = Math.min(255, pr + Math.round(22 * depthIntensity));
+              pg = Math.min(255, pg + Math.round(22 * depthIntensity));
+              pb = Math.min(255, pb + Math.round(22 * depthIntensity));
+            } else if (isShadow) {
+              pr = Math.round(pr * 0.85); pg = Math.round(pg * 0.85); pb = Math.round(pb * 0.85);
+            }
+
+            if (rampStyle === 'mud_slide') {
+              if (x === 10 || x === 11 || x === 20 || x === 21) {
+                pr = Math.round(pr * 0.70); pg = Math.round(pg * 0.70); pb = Math.round(pb * 0.70);
+              }
+            } else if (rampStyle === 'stepped') {
+              if (y % 6 === 0) {
+                pr = Math.min(255, pr + 36); pg = Math.min(255, pg + 36); pb = Math.min(255, pb + 36);
+              } else if (y % 6 === 5) {
+                pr = Math.round(pr * 0.55); pg = Math.round(pg * 0.55); pb = Math.round(pb * 0.55);
+              }
+            } else if (rampStyle === 'plank') {
+              if (y % 5 === 0) {
+                pr = Math.round(r * 0.35); pg = Math.round(g * 0.35); pb = Math.round(b * 0.35);
+              } else if (y % 5 === 1) {
+                pr = Math.min(255, pr + 28); pg = Math.min(255, pg + 28); pb = Math.min(255, pb + 28);
+              }
+              if ((x === 8 || x === 23) && (y % 5 === 2)) {
+                pr = 25; pg = 28; pb = 32;
+              }
+            } else if (rampStyle === 'cobblestone') {
+              if (Math.hypot((x % 4) - 2, (y % 4) - 2) < 1.1) {
+                pr = Math.min(255, pr + 24); pg = Math.min(255, pg + 24); pb = Math.min(255, pb + 24);
+              }
+            } else if (settings.slopeWheelRuts && (x === 11 || x === 20)) {
+              pr = Math.round(pr * 0.76); pg = Math.round(pg * 0.76); pb = Math.round(pb * 0.76);
+            }
+
+            tileData[idx] = pr; tileData[idx + 1] = pg; tileData[idx + 2] = pb; tileData[idx + 3] = 255;
+          }
+        }
+      }
+
+      // 2. VERTICAL RAMP TOP HALF (TOP-DOWN RPG 2-TILE SET - UPPER HALF)
+      else if (tileId === 'slope25d_ramp_v_top') {
+        const leftMargin = 6;
+        const rightMargin = 25;
+
+        if (x < leftMargin) {
+          if (noBgWall) {
+            if (x < leftMargin - 2) {
+              applyBgPixel(tileData, idx, settings, underlayData);
+            } else if (x === leftMargin - 2) {
+              tileData[idx] = Math.min(255, Math.round(r * 1.25 + highlightRgb[0] * 0.20));
+              tileData[idx + 1] = Math.min(255, Math.round(g * 1.25 + highlightRgb[1] * 0.20));
+              tileData[idx + 2] = Math.min(255, Math.round(b * 1.25 + highlightRgb[2] * 0.20));
+              tileData[idx + 3] = 255;
+            } else {
+              tileData[idx] = outlineR; tileData[idx + 1] = outlineG; tileData[idx + 2] = outlineB; tileData[idx + 3] = 255;
+            }
+          } else {
+            const isStrata = (y % 6 === 0);
+            const wShade = isStrata ? 0.44 : 0.60;
+            tileData[idx] = Math.round(r * wShade); tileData[idx + 1] = Math.round(g * wShade); tileData[idx + 2] = Math.round(b * wShade);
+            tileData[idx + 3] = 255;
+          }
+        } else if (x > rightMargin) {
+          if (noBgWall) {
+            if (x === rightMargin + 1) {
+              tileData[idx] = outlineR; tileData[idx + 1] = outlineG; tileData[idx + 2] = outlineB; tileData[idx + 3] = 255;
+            } else if (x === rightMargin + 2) {
+              tileData[idx] = Math.round(r * 0.72); tileData[idx + 1] = Math.round(g * 0.72); tileData[idx + 2] = Math.round(b * 0.72); tileData[idx + 3] = 255;
+            } else {
+              applyBgPixel(tileData, idx, settings, underlayData);
+            }
+          } else {
+            const isStrata = (y % 6 === 0);
+            const wShade = isStrata ? 0.38 : 0.52;
+            tileData[idx] = Math.round(r * wShade); tileData[idx + 1] = Math.round(g * wShade); tileData[idx + 2] = Math.round(b * wShade);
+            tileData[idx + 3] = 255;
+          }
+        } else {
+          // Walkable ramp path - Upper Half of 64px vertical climb
+          if (y === 0) {
+            // Flush entrance meeting upper plateau floor with ZERO gap
+            tileData[idx] = r; tileData[idx + 1] = g; tileData[idx + 2] = b; tileData[idx + 3] = 255;
+          } else {
+            const slopeT = y / 62; // 0.0 to 31/62 = 0.50
+            const elevLight = 1.15 - slopeT * (0.30 * depthIntensity);
+            let pr = Math.min(255, Math.round(r * elevLight));
+            let pg = Math.min(255, Math.round(g * elevLight));
+            let pb = Math.min(255, Math.round(b * elevLight));
+
+            const isTread = (y % 4 === 0);
+            const isShadow = (y % 4 === 2);
+            if (isTread) {
+              pr = Math.min(255, pr + Math.round(22 * depthIntensity));
+              pg = Math.min(255, pg + Math.round(22 * depthIntensity));
+              pb = Math.min(255, pb + Math.round(22 * depthIntensity));
+            } else if (isShadow) {
+              pr = Math.round(pr * 0.85); pg = Math.round(pg * 0.85); pb = Math.round(pb * 0.85);
+            }
+
+            if (rampStyle === 'mud_slide' && (x === 10 || x === 11 || x === 20 || x === 21)) {
+              pr = Math.round(pr * 0.70); pg = Math.round(pg * 0.70); pb = Math.round(pb * 0.70);
+            } else if (rampStyle === 'stepped') {
+              if (y % 6 === 0) {
+                pr = Math.min(255, pr + 36); pg = Math.min(255, pg + 36); pb = Math.min(255, pb + 36);
+              } else if (y % 6 === 5) {
+                pr = Math.round(pr * 0.55); pg = Math.round(pg * 0.55); pb = Math.round(pb * 0.55);
+              }
+            } else if (rampStyle === 'plank') {
+              if (y % 5 === 0) {
+                pr = Math.round(r * 0.35); pg = Math.round(g * 0.35); pb = Math.round(b * 0.35);
+              } else if (y % 5 === 1) {
+                pr = Math.min(255, pr + 28); pg = Math.min(255, pg + 28); pb = Math.min(255, pb + 28);
+              }
+              if ((x === 8 || x === 23) && (y % 5 === 2)) {
+                pr = 25; pg = 28; pb = 32;
+              }
+            } else if (rampStyle === 'cobblestone') {
+              if (Math.hypot((x % 4) - 2, (y % 4) - 2) < 1.1) {
+                pr = Math.min(255, pr + 24); pg = Math.min(255, pg + 24); pb = Math.min(255, pb + 24);
+              }
+            } else if (settings.slopeWheelRuts && (x === 11 || x === 20)) {
+              pr = Math.round(pr * 0.76); pg = Math.round(pg * 0.76); pb = Math.round(pb * 0.76);
+            }
+
+            tileData[idx] = pr; tileData[idx + 1] = pg; tileData[idx + 2] = pb; tileData[idx + 3] = 255;
+          }
+        }
+      }
+
+      // 3. VERTICAL RAMP BOTTOM HALF (TOP-DOWN RPG 2-TILE SET - LOWER HALF)
+      else if (tileId === 'slope25d_ramp_v_base') {
+        const leftMargin = 6;
+        const rightMargin = 25;
+
+        if (x < leftMargin) {
+          if (noBgWall) {
+            if (x < leftMargin - 2) {
+              applyBgPixel(tileData, idx, settings, underlayData);
+            } else if (x === leftMargin - 2) {
+              tileData[idx] = Math.min(255, Math.round(r * 1.25 + highlightRgb[0] * 0.20));
+              tileData[idx + 1] = Math.min(255, Math.round(g * 1.25 + highlightRgb[1] * 0.20));
+              tileData[idx + 2] = Math.min(255, Math.round(b * 1.25 + highlightRgb[2] * 0.20));
+              tileData[idx + 3] = 255;
+            } else {
+              tileData[idx] = outlineR; tileData[idx + 1] = outlineG; tileData[idx + 2] = outlineB; tileData[idx + 3] = 255;
+            }
+          } else {
+            const isStrata = ((32 + y) % 6 === 0);
+            const wShade = isStrata ? 0.44 : 0.60;
+            tileData[idx] = Math.round(r * wShade); tileData[idx + 1] = Math.round(g * wShade); tileData[idx + 2] = Math.round(b * wShade);
+            tileData[idx + 3] = 255;
+          }
+        } else if (x > rightMargin) {
+          if (noBgWall) {
+            if (x === rightMargin + 1) {
+              tileData[idx] = outlineR; tileData[idx + 1] = outlineG; tileData[idx + 2] = outlineB; tileData[idx + 3] = 255;
+            } else if (x === rightMargin + 2) {
+              tileData[idx] = Math.round(r * 0.72); tileData[idx + 1] = Math.round(g * 0.72); tileData[idx + 2] = Math.round(b * 0.72); tileData[idx + 3] = 255;
+            } else {
+              applyBgPixel(tileData, idx, settings, underlayData);
+            }
+          } else {
+            const isStrata = ((32 + y) % 6 === 0);
+            const wShade = isStrata ? 0.38 : 0.52;
+            tileData[idx] = Math.round(r * wShade); tileData[idx + 1] = Math.round(g * wShade); tileData[idx + 2] = Math.round(b * wShade);
+            tileData[idx + 3] = 255;
+          }
+        } else {
+          // Walkable ramp path - Lower Half continuing from Top Half
+          if (y === 31) {
+            // Flush exit meeting lower ground floor with ZERO gap
+            tileData[idx] = r; tileData[idx + 1] = g; tileData[idx + 2] = b; tileData[idx + 3] = 255;
+          } else {
+            const globalY = 32 + y;
+            const slopeT = globalY / 62; // 32/62 = 0.516 to 62/62 = 1.0
+            const elevLight = 1.15 - slopeT * (0.30 * depthIntensity);
+            let pr = Math.min(255, Math.round(r * elevLight));
+            let pg = Math.min(255, Math.round(g * elevLight));
+            let pb = Math.min(255, Math.round(b * elevLight));
+
+            // Treads continuing seamless 4-pixel phase from Top Half
+            const isTread = (globalY % 4 === 0);
+            const isShadow = (globalY % 4 === 2);
+            if (isTread) {
+              pr = Math.min(255, pr + Math.round(22 * depthIntensity));
+              pg = Math.min(255, pg + Math.round(22 * depthIntensity));
+              pb = Math.min(255, pb + Math.round(22 * depthIntensity));
+            } else if (isShadow) {
+              pr = Math.round(pr * 0.85); pg = Math.round(pg * 0.85); pb = Math.round(pb * 0.85);
+            }
+
+            if (rampStyle === 'mud_slide' && (x === 10 || x === 11 || x === 20 || x === 21)) {
+              pr = Math.round(pr * 0.70); pg = Math.round(pg * 0.70); pb = Math.round(pb * 0.70);
+            } else if (rampStyle === 'stepped') {
+              if (globalY % 6 === 0) {
+                pr = Math.min(255, pr + 36); pg = Math.min(255, pg + 36); pb = Math.min(255, pb + 36);
+              } else if (globalY % 6 === 5) {
+                pr = Math.round(pr * 0.55); pg = Math.round(pg * 0.55); pb = Math.round(pb * 0.55);
+              }
+            } else if (rampStyle === 'plank') {
+              if (globalY % 5 === 0) {
+                pr = Math.round(r * 0.35); pg = Math.round(g * 0.35); pb = Math.round(b * 0.35);
+              } else if (globalY % 5 === 1) {
+                pr = Math.min(255, pr + 28); pg = Math.min(255, pg + 28); pb = Math.min(255, pb + 28);
+              }
+              if ((x === 8 || x === 23) && (globalY % 5 === 2)) {
+                pr = 25; pg = 28; pb = 32;
+              }
+            } else if (rampStyle === 'cobblestone') {
+              if (Math.hypot((x % 4) - 2, (y % 4) - 2) < 1.1) {
+                pr = Math.min(255, pr + 24); pg = Math.min(255, pg + 24); pb = Math.min(255, pb + 24);
+              }
+            } else if (settings.slopeWheelRuts && (x === 11 || x === 20)) {
+              pr = Math.round(pr * 0.76); pg = Math.round(pg * 0.76); pb = Math.round(pb * 0.76);
+            }
+
+            tileData[idx] = pr; tileData[idx + 1] = pg; tileData[idx + 2] = pb; tileData[idx + 3] = 255;
+          }
+        }
+      }
+
+      // 4. LATERAL RAMP W->E (TOP-DOWN RPG VIEW: PART 1 - LOW/WEST HALF)
+      else if (tileId === 'slope25d_ramp_lat_w2e_top') {
+        const topMargin = 6;
+        const bottomMargin = 25;
+
+        if (y < topMargin) {
+          if (noBgWall) {
+            if (y < topMargin - 2) {
+              applyBgPixel(tileData, idx, settings, underlayData);
+            } else if (y === topMargin - 2) {
+              tileData[idx] = Math.min(255, Math.round(r * 1.25 + highlightRgb[0] * 0.20));
+              tileData[idx + 1] = Math.min(255, Math.round(g * 1.25 + highlightRgb[1] * 0.20));
+              tileData[idx + 2] = Math.min(255, Math.round(b * 1.25 + highlightRgb[2] * 0.20));
+              tileData[idx + 3] = 255;
+            } else {
+              tileData[idx] = outlineR; tileData[idx + 1] = outlineG; tileData[idx + 2] = outlineB; tileData[idx + 3] = 255;
+            }
+          } else {
+            const isStrata = (x % 6 === 0);
+            const wShade = isStrata ? 0.44 : 0.60;
+            tileData[idx] = Math.round(r * wShade); tileData[idx + 1] = Math.round(g * wShade); tileData[idx + 2] = Math.round(b * wShade);
+            tileData[idx + 3] = 255;
+          }
+        } else if (y > bottomMargin) {
+          if (noBgWall) {
+            if (y === bottomMargin + 1) {
+              tileData[idx] = outlineR; tileData[idx + 1] = outlineG; tileData[idx + 2] = outlineB; tileData[idx + 3] = 255;
+            } else if (y === bottomMargin + 2) {
+              tileData[idx] = Math.round(r * 0.72); tileData[idx + 1] = Math.round(g * 0.72); tileData[idx + 2] = Math.round(b * 0.72); tileData[idx + 3] = 255;
+            } else {
+              applyBgPixel(tileData, idx, settings, underlayData);
+            }
+          } else {
+            const isStrata = (x % 6 === 0);
+            const wShade = isStrata ? 0.38 : 0.52;
+            tileData[idx] = Math.round(r * wShade); tileData[idx + 1] = Math.round(g * wShade); tileData[idx + 2] = Math.round(b * wShade);
+            tileData[idx + 3] = 255;
+          }
+        } else {
+          // Horizontal walkable ramp path ascending from West to East (Part 1: Low to Mid)
+          if (x === 0) {
+            // Flush entrance meeting lower ground on the West with ZERO gap
+            tileData[idx] = r; tileData[idx + 1] = g; tileData[idx + 2] = b; tileData[idx + 3] = 255;
+          } else {
+            const slopeT = x / 62; // 0.0 to 31/62 = 0.50
+            const elevLight = 0.85 + slopeT * (0.30 * depthIntensity);
+            let pr = Math.min(255, Math.round(r * elevLight));
+            let pg = Math.min(255, Math.round(g * elevLight));
+            let pb = Math.min(255, Math.round(b * elevLight));
+
+            const isTread = (x % 4 === 0);
+            const isShadow = (x % 4 === 2);
+            if (isTread) {
+              pr = Math.min(255, pr + Math.round(22 * depthIntensity));
+              pg = Math.min(255, pg + Math.round(22 * depthIntensity));
+              pb = Math.min(255, pb + Math.round(22 * depthIntensity));
+            } else if (isShadow) {
+              pr = Math.round(pr * 0.85); pg = Math.round(pg * 0.85); pb = Math.round(pb * 0.85);
+            }
+
+            if (rampStyle === 'mud_slide' && (y === 10 || y === 11 || y === 20 || y === 21)) {
+              pr = Math.round(pr * 0.70); pg = Math.round(pg * 0.70); pb = Math.round(pb * 0.70);
+            } else if (rampStyle === 'stepped') {
+              if (x % 6 === 0) {
+                pr = Math.min(255, pr + 36); pg = Math.min(255, pg + 36); pb = Math.min(255, pb + 36);
+              } else if (x % 6 === 5) {
+                pr = Math.round(pr * 0.55); pg = Math.round(pg * 0.55); pb = Math.round(pb * 0.55);
+              }
+            } else if (rampStyle === 'plank') {
+              if (x % 5 === 0) {
+                pr = Math.round(r * 0.35); pg = Math.round(g * 0.35); pb = Math.round(b * 0.35);
+              } else if (x % 5 === 1) {
+                pr = Math.min(255, pr + 28); pg = Math.min(255, pg + 28); pb = Math.min(255, pb + 28);
+              }
+            } else if (rampStyle === 'cobblestone') {
+              if (Math.hypot((x % 4) - 2, (y % 4) - 2) < 1.1) {
+                pr = Math.min(255, pr + 24); pg = Math.min(255, pg + 24); pb = Math.min(255, pb + 24);
+              }
+            } else if (settings.slopeWheelRuts && (y === 11 || y === 20)) {
+              pr = Math.round(pr * 0.76); pg = Math.round(pg * 0.76); pb = Math.round(pb * 0.76);
+            }
+
+            tileData[idx] = pr; tileData[idx + 1] = pg; tileData[idx + 2] = pb; tileData[idx + 3] = 255;
+          }
+        }
+      }
+
+      // 5. LATERAL RAMP W->E (TOP-DOWN RPG VIEW: PART 2 - MID/EAST HALF)
+      else if (tileId === 'slope25d_ramp_lat_w2e_wall') {
+        const topMargin = 6;
+        const bottomMargin = 25;
+
+        if (y < topMargin) {
+          if (noBgWall) {
+            if (y < topMargin - 2) {
+              applyBgPixel(tileData, idx, settings, underlayData);
+            } else if (y === topMargin - 2) {
+              tileData[idx] = Math.min(255, Math.round(r * 1.25 + highlightRgb[0] * 0.20));
+              tileData[idx + 1] = Math.min(255, Math.round(g * 1.25 + highlightRgb[1] * 0.20));
+              tileData[idx + 2] = Math.min(255, Math.round(b * 1.25 + highlightRgb[2] * 0.20));
+              tileData[idx + 3] = 255;
+            } else {
+              tileData[idx] = outlineR; tileData[idx + 1] = outlineG; tileData[idx + 2] = outlineB; tileData[idx + 3] = 255;
+            }
+          } else {
+            const isStrata = ((32 + x) % 6 === 0);
+            const wShade = isStrata ? 0.44 : 0.60;
+            tileData[idx] = Math.round(r * wShade); tileData[idx + 1] = Math.round(g * wShade); tileData[idx + 2] = Math.round(b * wShade);
+            tileData[idx + 3] = 255;
+          }
+        } else if (y > bottomMargin) {
+          if (noBgWall) {
+            if (y === bottomMargin + 1) {
+              tileData[idx] = outlineR; tileData[idx + 1] = outlineG; tileData[idx + 2] = outlineB; tileData[idx + 3] = 255;
+            } else if (y === bottomMargin + 2) {
+              tileData[idx] = Math.round(r * 0.72); tileData[idx + 1] = Math.round(g * 0.72); tileData[idx + 2] = Math.round(b * 0.72); tileData[idx + 3] = 255;
+            } else {
+              applyBgPixel(tileData, idx, settings, underlayData);
+            }
+          } else {
+            const isStrata = ((32 + x) % 6 === 0);
+            const wShade = isStrata ? 0.38 : 0.52;
+            tileData[idx] = Math.round(r * wShade); tileData[idx + 1] = Math.round(g * wShade); tileData[idx + 2] = Math.round(b * wShade);
+            tileData[idx + 3] = 255;
+          }
+        } else {
+          // Walkable ramp path continuing seamlessly from Part 1
+          if (x === 31) {
+            // Flush exit meeting upper plateau on the East with ZERO gap
+            tileData[idx] = r; tileData[idx + 1] = g; tileData[idx + 2] = b; tileData[idx + 3] = 255;
+          } else {
+            const globalX = 32 + x;
+            const slopeT = globalX / 62; // 32/62 = 0.516 to 62/62 = 1.0
+            const elevLight = 0.85 + slopeT * (0.30 * depthIntensity);
+            let pr = Math.min(255, Math.round(r * elevLight));
+            let pg = Math.min(255, Math.round(g * elevLight));
+            let pb = Math.min(255, Math.round(b * elevLight));
+
+            const isTread = (globalX % 4 === 0);
+            const isShadow = (globalX % 4 === 2);
+            if (isTread) {
+              pr = Math.min(255, pr + Math.round(22 * depthIntensity));
+              pg = Math.min(255, pg + Math.round(22 * depthIntensity));
+              pb = Math.min(255, pb + Math.round(22 * depthIntensity));
+            } else if (isShadow) {
+              pr = Math.round(pr * 0.85); pg = Math.round(pg * 0.85); pb = Math.round(pb * 0.85);
+            }
+
+            if (rampStyle === 'mud_slide' && (y === 10 || y === 11 || y === 20 || y === 21)) {
+              pr = Math.round(pr * 0.70); pg = Math.round(pg * 0.70); pb = Math.round(pb * 0.70);
+            } else if (rampStyle === 'stepped') {
+              if (globalX % 6 === 0) {
+                pr = Math.min(255, pr + 36); pg = Math.min(255, pg + 36); pb = Math.min(255, pb + 36);
+              } else if (globalX % 6 === 5) {
+                pr = Math.round(pr * 0.55); pg = Math.round(pg * 0.55); pb = Math.round(pb * 0.55);
+              }
+            } else if (rampStyle === 'plank') {
+              if (globalX % 5 === 0) {
+                pr = Math.round(r * 0.35); pg = Math.round(g * 0.35); pb = Math.round(b * 0.35);
+              } else if (globalX % 5 === 1) {
+                pr = Math.min(255, pr + 28); pg = Math.min(255, pg + 28); pb = Math.min(255, pb + 28);
+              }
+            } else if (rampStyle === 'cobblestone') {
+              if (Math.hypot((x % 4) - 2, (y % 4) - 2) < 1.1) {
+                pr = Math.min(255, pr + 24); pg = Math.min(255, pg + 24); pb = Math.min(255, pb + 24);
+              }
+            } else if (settings.slopeWheelRuts && (y === 11 || y === 20)) {
+              pr = Math.round(pr * 0.76); pg = Math.round(pg * 0.76); pb = Math.round(pb * 0.76);
+            }
+
+            tileData[idx] = pr; tileData[idx + 1] = pg; tileData[idx + 2] = pb; tileData[idx + 3] = 255;
+          }
+        }
+      }
+
+      // 6. LATERAL RAMP E->W (TOP-DOWN RPG VIEW: PART 1 - HIGH/EAST HALF)
+      else if (tileId === 'slope25d_ramp_lat_e2w_top') {
+        const topMargin = 6;
+        const bottomMargin = 25;
+
+        if (y < topMargin) {
+          if (noBgWall) {
+            if (y < topMargin - 2) {
+              applyBgPixel(tileData, idx, settings, underlayData);
+            } else if (y === topMargin - 2) {
+              tileData[idx] = Math.min(255, Math.round(r * 1.25 + highlightRgb[0] * 0.20));
+              tileData[idx + 1] = Math.min(255, Math.round(g * 1.25 + highlightRgb[1] * 0.20));
+              tileData[idx + 2] = Math.min(255, Math.round(b * 1.25 + highlightRgb[2] * 0.20));
+              tileData[idx + 3] = 255;
+            } else {
+              tileData[idx] = outlineR; tileData[idx + 1] = outlineG; tileData[idx + 2] = outlineB; tileData[idx + 3] = 255;
+            }
+          } else {
+            const isStrata = (x % 6 === 0);
+            const wShade = isStrata ? 0.44 : 0.60;
+            tileData[idx] = Math.round(r * wShade); tileData[idx + 1] = Math.round(g * wShade); tileData[idx + 2] = Math.round(b * wShade);
+            tileData[idx + 3] = 255;
+          }
+        } else if (y > bottomMargin) {
+          if (noBgWall) {
+            if (y === bottomMargin + 1) {
+              tileData[idx] = outlineR; tileData[idx + 1] = outlineG; tileData[idx + 2] = outlineB; tileData[idx + 3] = 255;
+            } else if (y === bottomMargin + 2) {
+              tileData[idx] = Math.round(r * 0.72); tileData[idx + 1] = Math.round(g * 0.72); tileData[idx + 2] = Math.round(b * 0.72); tileData[idx + 3] = 255;
+            } else {
+              applyBgPixel(tileData, idx, settings, underlayData);
+            }
+          } else {
+            const isStrata = (x % 6 === 0);
+            const wShade = isStrata ? 0.38 : 0.52;
+            tileData[idx] = Math.round(r * wShade); tileData[idx + 1] = Math.round(g * wShade); tileData[idx + 2] = Math.round(b * wShade);
+            tileData[idx + 3] = 255;
+          }
+        } else {
+          // Descending towards West (Part 1 East Half: High to Mid)
+          if (x === 31) {
+            // Flush entrance meeting upper plateau on the East with ZERO gap
+            tileData[idx] = r; tileData[idx + 1] = g; tileData[idx + 2] = b; tileData[idx + 3] = 255;
+          } else {
+            const distFromEast = 31 - x;
+            const slopeT = distFromEast / 62; // 0.0 to 31/62 = 0.50
+            const elevLight = 1.15 - slopeT * (0.30 * depthIntensity);
+            let pr = Math.min(255, Math.round(r * elevLight));
+            let pg = Math.min(255, Math.round(g * elevLight));
+            let pb = Math.min(255, Math.round(b * elevLight));
+
+            const isTread = (distFromEast % 4 === 0);
+            const isShadow = (distFromEast % 4 === 2);
+            if (isTread) {
+              pr = Math.min(255, pr + Math.round(22 * depthIntensity));
+              pg = Math.min(255, pg + Math.round(22 * depthIntensity));
+              pb = Math.min(255, pb + Math.round(22 * depthIntensity));
+            } else if (isShadow) {
+              pr = Math.round(pr * 0.85); pg = Math.round(pg * 0.85); pb = Math.round(pb * 0.85);
+            }
+
+            if (rampStyle === 'mud_slide' && (y === 10 || y === 11 || y === 20 || y === 21)) {
+              pr = Math.round(pr * 0.70); pg = Math.round(pg * 0.70); pb = Math.round(pb * 0.70);
+            } else if (rampStyle === 'stepped') {
+              if (distFromEast % 6 === 0) {
+                pr = Math.min(255, pr + 36); pg = Math.min(255, pg + 36); pb = Math.min(255, pb + 36);
+              } else if (distFromEast % 6 === 5) {
+                pr = Math.round(pr * 0.55); pg = Math.round(pg * 0.55); pb = Math.round(pb * 0.55);
+              }
+            } else if (rampStyle === 'plank') {
+              if (distFromEast % 5 === 0) {
+                pr = Math.round(r * 0.35); pg = Math.round(g * 0.35); pb = Math.round(b * 0.35);
+              } else if (distFromEast % 5 === 1) {
+                pr = Math.min(255, pr + 28); pg = Math.min(255, pg + 28); pb = Math.min(255, pb + 28);
+              }
+            } else if (rampStyle === 'cobblestone') {
+              if (Math.hypot((x % 4) - 2, (y % 4) - 2) < 1.1) {
+                pr = Math.min(255, pr + 24); pg = Math.min(255, pg + 24); pb = Math.min(255, pb + 24);
+              }
+            } else if (settings.slopeWheelRuts && (y === 11 || y === 20)) {
+              pr = Math.round(pr * 0.76); pg = Math.round(pg * 0.76); pb = Math.round(pb * 0.76);
+            }
+
+            tileData[idx] = pr; tileData[idx + 1] = pg; tileData[idx + 2] = pb; tileData[idx + 3] = 255;
+          }
+        }
+      }
+
+      // 7. LATERAL RAMP E->W (TOP-DOWN RPG VIEW: PART 2 - LOW/WEST HALF)
+      else if (tileId === 'slope25d_ramp_lat_e2w_wall') {
+        const topMargin = 6;
+        const bottomMargin = 25;
+
+        if (y < topMargin) {
+          if (noBgWall) {
+            if (y < topMargin - 2) {
+              applyBgPixel(tileData, idx, settings, underlayData);
+            } else if (y === topMargin - 2) {
+              tileData[idx] = Math.min(255, Math.round(r * 1.25 + highlightRgb[0] * 0.20));
+              tileData[idx + 1] = Math.min(255, Math.round(g * 1.25 + highlightRgb[1] * 0.20));
+              tileData[idx + 2] = Math.min(255, Math.round(b * 1.25 + highlightRgb[2] * 0.20));
+              tileData[idx + 3] = 255;
+            } else {
+              tileData[idx] = outlineR; tileData[idx + 1] = outlineG; tileData[idx + 2] = outlineB; tileData[idx + 3] = 255;
+            }
+          } else {
+            const isStrata = ((32 + (31 - x)) % 6 === 0);
+            const wShade = isStrata ? 0.44 : 0.60;
+            tileData[idx] = Math.round(r * wShade); tileData[idx + 1] = Math.round(g * wShade); tileData[idx + 2] = Math.round(b * wShade);
+            tileData[idx + 3] = 255;
+          }
+        } else if (y > bottomMargin) {
+          if (noBgWall) {
+            if (y === bottomMargin + 1) {
+              tileData[idx] = outlineR; tileData[idx + 1] = outlineG; tileData[idx + 2] = outlineB; tileData[idx + 3] = 255;
+            } else if (y === bottomMargin + 2) {
+              tileData[idx] = Math.round(r * 0.72); tileData[idx + 1] = Math.round(g * 0.72); tileData[idx + 2] = Math.round(b * 0.72); tileData[idx + 3] = 255;
+            } else {
+              applyBgPixel(tileData, idx, settings, underlayData);
+            }
+          } else {
+            const isStrata = ((32 + (31 - x)) % 6 === 0);
+            const wShade = isStrata ? 0.38 : 0.52;
+            tileData[idx] = Math.round(r * wShade); tileData[idx + 1] = Math.round(g * wShade); tileData[idx + 2] = Math.round(b * wShade);
+            tileData[idx + 3] = 255;
+          }
+        } else {
+          // Continuing down towards West (Part 2 West Half: Mid to Low)
+          if (x === 0) {
+            // Flush exit meeting lower ground on the West with ZERO gap
+            tileData[idx] = r; tileData[idx + 1] = g; tileData[idx + 2] = b; tileData[idx + 3] = 255;
+          } else {
+            const globalDist = 32 + (31 - x);
+            const slopeT = globalDist / 62; // 32/62 = 0.516 to 62/62 = 1.0
+            const elevLight = 1.15 - slopeT * (0.30 * depthIntensity);
+            let pr = Math.min(255, Math.round(r * elevLight));
+            let pg = Math.min(255, Math.round(g * elevLight));
+            let pb = Math.min(255, Math.round(b * elevLight));
+
+            const isTread = (globalDist % 4 === 0);
+            const isShadow = (globalDist % 4 === 2);
+            if (isTread) {
+              pr = Math.min(255, pr + Math.round(22 * depthIntensity));
+              pg = Math.min(255, pg + Math.round(22 * depthIntensity));
+              pb = Math.min(255, pb + Math.round(22 * depthIntensity));
+            } else if (isShadow) {
+              pr = Math.round(pr * 0.85); pg = Math.round(pg * 0.85); pb = Math.round(pb * 0.85);
+            }
+
+            if (rampStyle === 'mud_slide' && (y === 10 || y === 11 || y === 20 || y === 21)) {
+              pr = Math.round(pr * 0.70); pg = Math.round(pg * 0.70); pb = Math.round(pb * 0.70);
+            } else if (rampStyle === 'stepped') {
+              if (globalDist % 6 === 0) {
+                pr = Math.min(255, pr + 36); pg = Math.min(255, pg + 36); pb = Math.min(255, pb + 36);
+              } else if (globalDist % 6 === 5) {
+                pr = Math.round(pr * 0.55); pg = Math.round(pg * 0.55); pb = Math.round(pb * 0.55);
+              }
+            } else if (rampStyle === 'plank') {
+              if (globalDist % 5 === 0) {
+                pr = Math.round(r * 0.35); pg = Math.round(g * 0.35); pb = Math.round(b * 0.35);
+              } else if (globalDist % 5 === 1) {
+                pr = Math.min(255, pr + 28); pg = Math.min(255, pg + 28); pb = Math.min(255, pb + 28);
+              }
+            } else if (rampStyle === 'cobblestone') {
+              if (Math.hypot((x % 4) - 2, (y % 4) - 2) < 1.1) {
+                pr = Math.min(255, pr + 24); pg = Math.min(255, pg + 24); pb = Math.min(255, pb + 24);
+              }
+            } else if (settings.slopeWheelRuts && (y === 11 || y === 20)) {
+              pr = Math.round(pr * 0.76); pg = Math.round(pg * 0.76); pb = Math.round(pb * 0.76);
+            }
+
+            tileData[idx] = pr; tileData[idx + 1] = pg; tileData[idx + 2] = pb; tileData[idx + 3] = 255;
+          }
+        }
+      }
+
+      // 8. ROLLING HILL / MOUND (TOP-DOWN RPG CONCENTRIC ELEVATION)
+      else if (tileId === 'slope25d_natural_hill') {
+        const dx = x - 15.5;
+        const dy = y - 15.5;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist <= 5) {
+          // Flat sunlit circular top plateau
+          tileData[idx] = Math.min(255, Math.round(r * 1.18));
+          tileData[idx + 1] = Math.min(255, Math.round(g * 1.18));
+          tileData[idx + 2] = Math.min(255, Math.round(b * 1.18));
+        } else if (dist <= 15) {
+          // Top-down circular slope skirt with subtle concentric ring steps
+          const ringT = (dist - 5) / 10;
+          const shade = 1.15 - ringT * (0.25 * depthIntensity);
+          tileData[idx] = Math.round(r * shade);
+          tileData[idx + 1] = Math.round(g * shade);
+          tileData[idx + 2] = Math.round(b * shade);
+        } else {
+          // Ground floor meeting all 4 outer borders with ZERO gap
+          tileData[idx] = r;
+          tileData[idx + 1] = g;
+          tileData[idx + 2] = b;
+        }
+        tileData[idx + 3] = 255;
+      }
+
+      // 9. DIAGONAL CLIFF SLOPE NW (TOP-DOWN RPG VIEW)
+      else if (tileId === 'cliff_diag_slope_nw') {
+        const diag = x + y;
+        if (diag <= 12) {
+          // Upper plateau floor - seamless with ground
+          tileData[idx] = r; tileData[idx + 1] = g; tileData[idx + 2] = b;
+        } else if (diag === 13) {
+          // Sunlit slope crest ridge highlight
+          tileData[idx] = Math.min(255, Math.round(r * 1.30 + highlightRgb[0] * 0.22));
+          tileData[idx + 1] = Math.min(255, Math.round(g * 1.30 + highlightRgb[1] * 0.22));
+          tileData[idx + 2] = Math.min(255, Math.round(b * 1.30 + highlightRgb[2] * 0.22));
+        } else if (diag >= 14 && diag <= 21) {
+          // Top-down diagonal slope incline
+          const slopeT = (diag - 14) / 7;
+          const elevLight = 1.15 - slopeT * (0.30 * depthIntensity);
           let pr = Math.min(255, Math.round(r * elevLight));
           let pg = Math.min(255, Math.round(g * elevLight));
           let pb = Math.min(255, Math.round(b * elevLight));
 
-          // Contact curb shadows onto ramp bed
-          if (settings.slope3dCurbs) {
-            if (x === 5) { pr = Math.round(pr * 0.88); pg = Math.round(pg * 0.88); pb = Math.round(pb * 0.88); }
-            if (x === 26) { pr = Math.round(pr * 0.82); pg = Math.round(pg * 0.82); pb = Math.round(pb * 0.82); }
+          const isTread = ((diag - 14) % 4 === 0);
+          const isShadow = ((diag - 14) % 4 === 2);
+          if (isTread) {
+            pr = Math.min(255, pr + Math.round(20 * depthIntensity));
+            pg = Math.min(255, pg + Math.round(20 * depthIntensity));
+            pb = Math.min(255, pb + Math.round(20 * depthIntensity));
+          } else if (isShadow) {
+            pr = Math.round(pr * 0.85); pg = Math.round(pg * 0.85); pb = Math.round(pb * 0.85);
           }
 
-          if (rampStyle === 'mud_slide') {
-            // Pokémon Sinnoh Mud Slide (3D chevrons + bike ruts)
-            const chevronY = (y + Math.abs(x - 16) * 0.55) % 6;
-            const isBikeRut = (x >= 9 && x <= 11) || (x >= 20 && x <= 22);
-
-            if (chevronY < 1.2) {
-              pr = Math.min(255, pr + 45);
-              pg = Math.min(255, pg + 45);
-              pb = Math.min(255, pb + 45);
-            } else if (chevronY > 4.2) {
-              pr = Math.round(pr * 0.56);
-              pg = Math.round(pg * 0.56);
-              pb = Math.round(pb * 0.56);
-            }
-
-            if (isBikeRut) {
-              const isTireTooth = (y % 2 === 0);
-              const factor = isTireTooth ? 0.72 : 0.88;
-              pr = Math.round(pr * factor);
-              pg = Math.round(pg * factor);
-              pb = Math.round(pb * factor);
-            }
+          if (rampStyle === 'mud_slide' && Math.abs(x - y) === 3) {
+            pr = Math.round(pr * 0.70); pg = Math.round(pg * 0.70); pb = Math.round(pb * 0.70);
           } else if (rampStyle === 'stepped') {
-            // Dragon Quest DS terraced incline
-            const stepY = y % 8;
-            if (stepY === 0) {
-              pr = Math.min(255, pr + 45); pg = Math.min(255, pg + 45); pb = Math.min(255, pb + 45);
-            } else if (stepY === 6) {
-              pr = Math.round(pr * 0.48); pg = Math.round(pg * 0.48); pb = Math.round(pg * 0.48);
-            } else if (stepY === 7) {
-              pr = Math.round(pr * 0.62); pg = Math.round(pg * 0.62); pb = Math.round(pb * 0.62);
-            }
+            const sY = (diag - 14) % 5;
+            if (sY === 0) { pr = Math.min(255, pr + 32); pg = Math.min(255, pg + 32); pb = Math.min(255, pb + 32); }
+            else if (sY === 4) { pr = Math.round(pr * 0.60); pg = Math.round(pg * 0.60); pb = Math.round(pb * 0.60); }
           } else if (rampStyle === 'plank') {
-            const isSeam = (y % 6 === 0);
-            const isPin = (x === 7 || x === 24) && (y % 6 === 2);
-            if (isSeam) {
-              pr = Math.round(r * 0.38); pg = Math.round(g * 0.38); pb = Math.round(b * 0.38);
-            } else if (isPin) {
-              pr = 30; pg = 30; pb = 35;
-            } else if (y % 6 === 1) {
-              pr = Math.min(255, pr + 30); pg = Math.min(255, pg + 30); pb = Math.min(255, pb + 30);
-            }
-          } else if (rampStyle === 'cobblestone') {
-            const cobDist = Math.hypot((x % 6) - 3, (y % 5) - 2.5);
-            if (cobDist > 2.6) {
-              pr = Math.round(pr * 0.55); pg = Math.round(pg * 0.55); pb = Math.round(pb * 0.55);
-            } else if (cobDist < 1.2) {
-              pr = Math.min(255, pr + 28); pg = Math.min(255, pg + 28); pb = Math.min(255, pb + 28);
-            }
-          } else {
-            // Natural dirt / wagon ruts
-            if (settings.slopeWheelRuts) {
-              const isRut = (x >= 9 && x <= 11) || (x >= 20 && x <= 22);
-              const isShoulder = (x === 8 || x === 12 || x === 19 || x === 23);
-              if (isRut) {
-                pr = Math.round(pr * 0.78); pg = Math.round(pg * 0.78); pb = Math.round(pb * 0.78);
-              } else if (isShoulder && (y % 4 === 1)) {
-                pr = Math.min(255, pr + 24); pg = Math.min(255, pg + 24); pb = Math.min(255, pb + 24);
-              }
-            }
-            if (x >= 14 && x <= 17) {
-              pr = Math.min(255, pr + 8); pg = Math.min(255, pg + 8); pb = Math.min(255, pb + 8);
-            }
+            if ((diag - 14) % 4 === 0) { pr = Math.round(r * 0.35); pg = Math.round(g * 0.35); pb = Math.round(b * 0.35); }
+            else if ((diag - 14) % 4 === 1) { pr = Math.min(255, pr + 26); pg = Math.min(255, pg + 26); pb = Math.min(255, pb + 26); }
+          } else if (rampStyle === 'cobblestone' && (x % 4 === 0 && y % 4 === 0)) {
+            pr = Math.min(255, pr + 24); pg = Math.min(255, pg + 24); pb = Math.min(255, pb + 24);
           }
 
-          if (y === 0) {
-            pr = Math.min(255, pr + 22); pg = Math.min(255, pg + 22); pb = Math.min(255, pb + 22);
-          } else if (y >= 30) {
-            const bShadow = noBgWall ? 0.90 : (0.75 - shadowAlpha * 0.2);
-            pr = Math.round(pr * bShadow); pg = Math.round(pg * bShadow); pb = Math.round(pb * bShadow);
-          }
-
-          tileData[idx] = pr;
-          tileData[idx + 1] = pg;
-          tileData[idx + 2] = pb;
-          tileData[idx + 3] = 255;
-        }
-      }
-
-      // 2. VERTICAL RAMP TOP CREST
-      else if (tileId === 'slope25d_ramp_v_top') {
-        const flareLeft = Math.round(2 + (y * 3 / 31));
-        const flareRight = Math.round(29 - (y * 3 / 31));
-
-        if (x < flareLeft || x > flareRight) {
-          if (noBgWall) {
-            applyBgPixel(tileData, idx, settings, underlayData);
-          } else if (isNaturalBank) {
-            const bankShade = 0.85 + (y / 80);
-            tileData[idx] = Math.round(r * bankShade); tileData[idx + 1] = Math.round(g * bankShade); tileData[idx + 2] = Math.round(b * bankShade); tileData[idx + 3] = 255;
-          } else if (y < 8) {
-            tileData[idx] = r; tileData[idx + 1] = g; tileData[idx + 2] = b; tileData[idx + 3] = 255;
-          } else {
-            const wingShade = 0.6 + (y / 64);
-            tileData[idx] = Math.round(r * wingShade); tileData[idx + 1] = Math.round(g * wingShade); tileData[idx + 2] = Math.round(b * wingShade); tileData[idx + 3] = 255;
-          }
-        } else if (x === flareLeft || x === flareRight) {
-          tileData[idx] = outlineR; tileData[idx + 1] = outlineG; tileData[idx + 2] = outlineB; tileData[idx + 3] = 255;
+          tileData[idx] = pr; tileData[idx + 1] = pg; tileData[idx + 2] = pb;
+        } else if (diag === 22) {
+          // Shaded slope base seam
+          tileData[idx] = Math.round(r * 0.82);
+          tileData[idx + 1] = Math.round(g * 0.82);
+          tileData[idx + 2] = Math.round(b * 0.82);
         } else {
-          // Plateau threshold lip
-          if (y < 4) {
-            tileData[idx] = Math.min(255, Math.round(r * 1.18));
-            tileData[idx + 1] = Math.min(255, Math.round(g * 1.18));
-            tileData[idx + 2] = Math.min(255, Math.round(b * 1.18));
-          } else {
-            const elev = 1.16 - (y / 60);
-            tileData[idx] = Math.min(255, Math.round(r * elev));
-            tileData[idx + 1] = Math.min(255, Math.round(g * elev));
-            tileData[idx + 2] = Math.min(255, Math.round(b * elev));
-          }
-          tileData[idx + 3] = 255;
+          // Lower ground floor - seamless with ground with ZERO gap
+          tileData[idx] = r; tileData[idx + 1] = g; tileData[idx + 2] = b;
         }
-      }
-
-      // 3. VERTICAL RAMP BASE APRON
-      else if (tileId === 'slope25d_ramp_v_base') {
-        if (y < 16) {
-          if (x < 6 || x > 25) {
-            if (noBgWall) {
-              applyBgPixel(tileData, idx, settings, underlayData);
-            } else if (isNaturalBank) {
-              const baseWallShade = 0.78 + (y / 50);
-              tileData[idx] = Math.round(r * baseWallShade); tileData[idx + 1] = Math.round(g * baseWallShade); tileData[idx + 2] = Math.round(b * baseWallShade); tileData[idx + 3] = 255;
-            } else {
-              const baseWallShade = 0.55 + (y / 40);
-              tileData[idx] = Math.round(r * baseWallShade); tileData[idx + 1] = Math.round(g * baseWallShade); tileData[idx + 2] = Math.round(b * baseWallShade); tileData[idx + 3] = 255;
-            }
-          } else if (x === 6 || x === 25) {
-            tileData[idx] = outlineR; tileData[idx + 1] = outlineG; tileData[idx + 2] = outlineB; tileData[idx + 3] = 255;
-          } else {
-            tileData[idx] = Math.round(r * 0.94); tileData[idx + 1] = Math.round(g * 0.94); tileData[idx + 2] = Math.round(b * 0.94); tileData[idx + 3] = 255;
-          }
-        } else if (y >= 16 && y <= 21) {
-          // Curved base apron shadow
-          const distFromCurb = Math.min(x, 31 - x);
-          const shadowFactor = noBgWall ? (0.84 - (6 - Math.min(6, distFromCurb)) * 0.03) : (0.55 - shadowAlpha * 0.25);
-          tileData[idx] = Math.round(r * shadowFactor);
-          tileData[idx + 1] = Math.round(g * shadowFactor);
-          tileData[idx + 2] = Math.round(b * shadowFactor);
-          tileData[idx + 3] = 255;
-        } else {
-          // Fan-out gravel
-          if (y <= 25 && (x + y) % 5 === 0 && x >= 8 && x <= 23) {
-            tileData[idx] = Math.min(255, Math.round(r * 1.15));
-            tileData[idx + 1] = Math.min(255, Math.round(g * 1.15));
-            tileData[idx + 2] = Math.min(255, Math.round(b * 1.15));
-          } else {
-            tileData[idx] = r; tileData[idx + 1] = g; tileData[idx + 2] = b;
-          }
-          tileData[idx + 3] = 255;
-        }
-      }
-
-      // 4. LATERAL RAMP W->E TOP
-      else if (tileId === 'slope25d_ramp_lat_w2e_top') {
-        const rampY = Math.round(24 - (x * 16 / 31));
-        const distFromRamp = y - rampY;
-
-        if (distFromRamp < -4) {
-          if (noBgWall) {
-            applyBgPixel(tileData, idx, settings, underlayData);
-          } else if (isNaturalBank) {
-            const bgShade = 0.82 + ((y % 4) * 0.04);
-            tileData[idx] = Math.round(r * bgShade); tileData[idx + 1] = Math.round(g * bgShade); tileData[idx + 2] = Math.round(b * bgShade); tileData[idx + 3] = 255;
-          } else {
-            const bgShade = 0.65 + ((y % 4) * 0.05);
-            tileData[idx] = Math.round(r * bgShade); tileData[idx + 1] = Math.round(g * bgShade); tileData[idx + 2] = Math.round(b * bgShade); tileData[idx + 3] = 255;
-          }
-        } else if (distFromRamp === -4) {
-          tileData[idx] = Math.min(255, Math.round(r * 1.35 + 30));
-          tileData[idx + 1] = Math.min(255, Math.round(g * 1.35 + 30));
-          tileData[idx + 2] = Math.min(255, Math.round(b * 1.35 + 30));
-          tileData[idx + 3] = 255;
-        } else if (distFromRamp >= -3 && distFromRamp <= 3) {
-          const inclineLight = 0.95 + (x / 31) * 0.22;
-          const isTread = (x + y) % 5 === 0;
-          const mult = isTread ? inclineLight * 0.88 : inclineLight;
-          tileData[idx] = Math.min(255, Math.round(r * mult));
-          tileData[idx + 1] = Math.min(255, Math.round(g * mult));
-          tileData[idx + 2] = Math.min(255, Math.round(b * mult));
-          tileData[idx + 3] = 255;
-        } else if (distFromRamp === 4) {
-          tileData[idx] = outlineR; tileData[idx + 1] = outlineG; tileData[idx + 2] = outlineB; tileData[idx + 3] = 255;
-        } else {
-          if (noBgWall) {
-            const isPillar = (x === 6 || x === 18 || x === 28);
-            if (isPillar && distFromRamp <= 12 && settings.slopeTrestleBracing) {
-              tileData[idx] = Math.round(r * 0.45); tileData[idx + 1] = Math.round(g * 0.45); tileData[idx + 2] = Math.round(b * 0.45); tileData[idx + 3] = 255;
-            } else {
-              applyBgPixel(tileData, idx, settings, underlayData);
-            }
-          } else {
-            tileData[idx] = Math.round(r * 0.5); tileData[idx + 1] = Math.round(g * 0.5); tileData[idx + 2] = Math.round(b * 0.5); tileData[idx + 3] = 255;
-          }
-        }
-      }
-
-      // 5. LATERAL RAMP W->E WEDGE WALL
-      else if (tileId === 'slope25d_ramp_lat_w2e_wall') {
-        const wallBottom = Math.round(6 + (x * 20 / 31));
-
-        if (y < wallBottom) {
-          if (noBgWall) {
-            const isPillar = (x === 6 || x === 18 || x === 28);
-            if (isPillar && settings.slopeTrestleBracing) {
-              tileData[idx] = Math.round(r * 0.45); tileData[idx + 1] = Math.round(g * 0.45); tileData[idx + 2] = Math.round(b * 0.45); tileData[idx + 3] = 255;
-            } else {
-              applyBgPixel(tileData, idx, settings, underlayData);
-            }
-          } else {
-            const strata = Math.sin(y * 1.1 + (x % 3) * 0.4) * 0.12;
-            const wallShade = Math.max(0.4, Math.min(0.85, 0.60 + strata));
-            tileData[idx] = Math.round(r * wallShade); tileData[idx + 1] = Math.round(g * wallShade); tileData[idx + 2] = Math.round(b * wallShade); tileData[idx + 3] = 255;
-          }
-        } else if (y >= wallBottom && y <= wallBottom + 3) {
-          if (noBgWall) {
-            tileData[idx] = r; tileData[idx + 1] = g; tileData[idx + 2] = b; tileData[idx + 3] = 255;
-          } else {
-            tileData[idx] = Math.round(r * (0.45 - shadowAlpha * 0.15)); tileData[idx + 1] = Math.round(g * (0.45 - shadowAlpha * 0.15)); tileData[idx + 2] = Math.round(b * (0.45 - shadowAlpha * 0.15)); tileData[idx + 3] = 255;
-          }
-        } else {
-          tileData[idx] = r; tileData[idx + 1] = g; tileData[idx + 2] = b; tileData[idx + 3] = 255;
-        }
-      }
-
-      // 6. LATERAL RAMP E->W TOP
-      else if (tileId === 'slope25d_ramp_lat_e2w_top') {
-        const rampY = Math.round(8 + (x * 16 / 31));
-        const distFromRamp = y - rampY;
-
-        if (distFromRamp < -4) {
-          if (noBgWall) {
-            applyBgPixel(tileData, idx, settings, underlayData);
-          } else if (isNaturalBank) {
-            const bgShade = 0.82 + ((y % 4) * 0.04);
-            tileData[idx] = Math.round(r * bgShade); tileData[idx + 1] = Math.round(g * bgShade); tileData[idx + 2] = Math.round(b * bgShade); tileData[idx + 3] = 255;
-          } else {
-            const bgShade = 0.65 + ((y % 4) * 0.05);
-            tileData[idx] = Math.round(r * bgShade); tileData[idx + 1] = Math.round(g * bgShade); tileData[idx + 2] = Math.round(b * bgShade); tileData[idx + 3] = 255;
-          }
-        } else if (distFromRamp === -4) {
-          tileData[idx] = Math.min(255, Math.round(r * 1.35 + 30));
-          tileData[idx + 1] = Math.min(255, Math.round(g * 1.35 + 30));
-          tileData[idx + 2] = Math.min(255, Math.round(b * 1.35 + 30));
-          tileData[idx + 3] = 255;
-        } else if (distFromRamp >= -3 && distFromRamp <= 3) {
-          const inclineLight = 0.95 + ((31 - x) / 31) * 0.22;
-          const isTread = (31 - x + y) % 5 === 0;
-          const mult = isTread ? inclineLight * 0.88 : inclineLight;
-          tileData[idx] = Math.min(255, Math.round(r * mult));
-          tileData[idx + 1] = Math.min(255, Math.round(g * mult));
-          tileData[idx + 2] = Math.min(255, Math.round(b * mult));
-          tileData[idx + 3] = 255;
-        } else if (distFromRamp === 4) {
-          tileData[idx] = outlineR; tileData[idx + 1] = outlineG; tileData[idx + 2] = outlineB; tileData[idx + 3] = 255;
-        } else {
-          if (noBgWall) {
-            const isPillar = (x === 4 || x === 14 || x === 26);
-            if (isPillar && distFromRamp <= 12 && settings.slopeTrestleBracing) {
-              tileData[idx] = Math.round(r * 0.45); tileData[idx + 1] = Math.round(g * 0.45); tileData[idx + 2] = Math.round(b * 0.45); tileData[idx + 3] = 255;
-            } else {
-              applyBgPixel(tileData, idx, settings, underlayData);
-            }
-          } else {
-            tileData[idx] = Math.round(r * 0.5); tileData[idx + 1] = Math.round(g * 0.5); tileData[idx + 2] = Math.round(b * 0.5); tileData[idx + 3] = 255;
-          }
-        }
-      }
-
-      // 7. LATERAL RAMP E->W WEDGE WALL
-      else if (tileId === 'slope25d_ramp_lat_e2w_wall') {
-        const wallBottom = Math.round(26 - (x * 20 / 31));
-
-        if (y < wallBottom) {
-          if (noBgWall) {
-            const isPillar = (x === 4 || x === 14 || x === 26);
-            if (isPillar && settings.slopeTrestleBracing) {
-              tileData[idx] = Math.round(r * 0.45); tileData[idx + 1] = Math.round(g * 0.45); tileData[idx + 2] = Math.round(b * 0.45); tileData[idx + 3] = 255;
-            } else {
-              applyBgPixel(tileData, idx, settings, underlayData);
-            }
-          } else {
-            const strata = Math.sin(y * 1.1 + (x % 3) * 0.4) * 0.12;
-            const wallShade = Math.max(0.4, Math.min(0.85, 0.60 + strata));
-            tileData[idx] = Math.round(r * wallShade); tileData[idx + 1] = Math.round(g * wallShade); tileData[idx + 2] = Math.round(b * wallShade); tileData[idx + 3] = 255;
-          }
-        } else if (y >= wallBottom && y <= wallBottom + 3) {
-          if (noBgWall) {
-            tileData[idx] = r; tileData[idx + 1] = g; tileData[idx + 2] = b; tileData[idx + 3] = 255;
-          } else {
-            tileData[idx] = Math.round(r * (0.45 - shadowAlpha * 0.15)); tileData[idx + 1] = Math.round(g * (0.45 - shadowAlpha * 0.15)); tileData[idx + 2] = Math.round(b * (0.45 - shadowAlpha * 0.15)); tileData[idx + 3] = 255;
-          }
-        } else {
-          tileData[idx] = r; tileData[idx + 1] = g; tileData[idx + 2] = b; tileData[idx + 3] = 255;
-        }
-      }
-
-      // 8. ROLLING HILL / 2.5D MOUND (Topographic contour bands)
-      else if (tileId === 'slope25d_natural_hill') {
-        const dx = x - 13;
-        const dy = y - 11;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        let factor = 1.0;
-
-        // 3 Distinct contour terrace rings
-        const ring = Math.floor(dist / 5);
-        const ringStep = dist % 5;
-
-        if (dist < 6) {
-          // Sunlit peak crown
-          factor = 1.30 - (dist / 20);
-        } else if (dist < 18) {
-          const angle = Math.atan2(dy, dx);
-          const sunlit = (Math.cos(angle - 2.3) + 1) / 2; // NW sun
-          const baseRingLight = 1.15 - (ring * 0.08);
-          const lipHighlight = (ringStep < 1.2 && sunlit > 0.4) ? 0.15 : 0;
-          factor = baseRingLight + lipHighlight - ((1 - sunlit) * 0.28 * (dist / 18));
-        } else {
-          // Lower ground shadow falloff
-          const angle = Math.atan2(dy, dx);
-          const shadowBias = (Math.sin(angle - 0.7) + 1) / 2;
-          factor = 1.0 - shadowBias * 0.32 * Math.min(1.0, (dist - 18) / 8);
-        }
-
-        tileData[idx] = Math.max(0, Math.min(255, Math.round(r * factor)));
-        tileData[idx + 1] = Math.max(0, Math.min(255, Math.round(g * factor)));
-        tileData[idx + 2] = Math.max(0, Math.min(255, Math.round(b * factor)));
         tileData[idx + 3] = 255;
       }
 
-      // 9. DIAGONAL CLIFF SLOPE NW (Multi-tier terraced rock ledges)
-      else if (tileId === 'cliff_diag_slope_nw') {
-        const diag = x + y;
-        if (diag < 16) {
-          if (noBgWall) {
-            applyBgPixel(tileData, idx, settings, underlayData);
-          } else {
-            tileData[idx] = Math.min(255, Math.round(r * 1.12));
-            tileData[idx + 1] = Math.min(255, Math.round(g * 1.12));
-            tileData[idx + 2] = Math.min(255, Math.round(b * 1.12));
-            tileData[idx + 3] = 255;
-          }
-        } else if (diag === 16 || diag === 17) {
-          tileData[idx] = outlineR; tileData[idx + 1] = outlineG; tileData[idx + 2] = outlineB; tileData[idx + 3] = 255;
-        } else if (diag >= 18 && diag <= 30) {
-          const tier = (diag - 18) % 4;
-          if (tier === 0) {
-            // Sunlit rock shelf ledge
-            tileData[idx] = Math.min(255, Math.round(r * 1.18 + highlightRgb[0] * 0.15));
-            tileData[idx + 1] = Math.min(255, Math.round(g * 1.18 + highlightRgb[1] * 0.15));
-            tileData[idx + 2] = Math.min(255, Math.round(b * 1.18 + highlightRgb[2] * 0.15));
-          } else if (tier === 3) {
-            // Rock shelf under-shadow
-            tileData[idx] = Math.round(r * 0.58);
-            tileData[idx + 1] = Math.round(g * 0.58);
-            tileData[idx + 2] = Math.round(b * 0.58);
-          } else {
-            const slopeShade = 0.92 - ((diag - 18) / 12) * 0.22;
-            tileData[idx] = Math.round(r * slopeShade);
-            tileData[idx + 1] = Math.round(g * slopeShade);
-            tileData[idx + 2] = Math.round(b * slopeShade);
-          }
-          tileData[idx + 3] = 255;
-        } else if (diag >= 31 && diag <= 34) {
-          const bShadow = noBgWall ? 0.92 : (0.35 + (1 - shadowAlpha) * 0.2);
-          tileData[idx] = Math.round(r * bShadow);
-          tileData[idx + 1] = Math.round(g * bShadow);
-          tileData[idx + 2] = Math.round(b * bShadow);
-          tileData[idx + 3] = 255;
-        } else {
-          tileData[idx] = r; tileData[idx + 1] = g; tileData[idx + 2] = b; tileData[idx + 3] = 255;
-        }
-      }
-
-      // 10. DIAGONAL CLIFF SLOPE NE
+      // 10. DIAGONAL CLIFF SLOPE NE (TOP-DOWN RPG VIEW)
       else if (tileId === 'cliff_diag_slope_ne') {
         const diag = (31 - x) + y;
-        if (diag < 16) {
-          if (noBgWall) {
-            applyBgPixel(tileData, idx, settings, underlayData);
-          } else {
-            tileData[idx] = Math.min(255, Math.round(r * 1.12));
-            tileData[idx + 1] = Math.min(255, Math.round(g * 1.12));
-            tileData[idx + 2] = Math.min(255, Math.round(b * 1.12));
-            tileData[idx + 3] = 255;
+        if (diag <= 12) {
+          tileData[idx] = r; tileData[idx + 1] = g; tileData[idx + 2] = b;
+        } else if (diag === 13) {
+          tileData[idx] = Math.min(255, Math.round(r * 1.30 + highlightRgb[0] * 0.22));
+          tileData[idx + 1] = Math.min(255, Math.round(g * 1.30 + highlightRgb[1] * 0.22));
+          tileData[idx + 2] = Math.min(255, Math.round(b * 1.30 + highlightRgb[2] * 0.22));
+        } else if (diag >= 14 && diag <= 21) {
+          const slopeT = (diag - 14) / 7;
+          const elevLight = 1.15 - slopeT * (0.30 * depthIntensity);
+          let pr = Math.min(255, Math.round(r * elevLight));
+          let pg = Math.min(255, Math.round(g * elevLight));
+          let pb = Math.min(255, Math.round(b * elevLight));
+
+          const isTread = ((diag - 14) % 4 === 0);
+          const isShadow = ((diag - 14) % 4 === 2);
+          if (isTread) {
+            pr = Math.min(255, pr + Math.round(20 * depthIntensity));
+            pg = Math.min(255, pg + Math.round(20 * depthIntensity));
+            pb = Math.min(255, pb + Math.round(20 * depthIntensity));
+          } else if (isShadow) {
+            pr = Math.round(pr * 0.85); pg = Math.round(pg * 0.85); pb = Math.round(pb * 0.85);
           }
-        } else if (diag === 16 || diag === 17) {
-          tileData[idx] = outlineR; tileData[idx + 1] = outlineG; tileData[idx + 2] = outlineB; tileData[idx + 3] = 255;
-        } else if (diag >= 18 && diag <= 30) {
-          const tier = (diag - 18) % 4;
-          if (tier === 0) {
-            tileData[idx] = Math.min(255, Math.round(r * 1.18 + highlightRgb[0] * 0.15));
-            tileData[idx + 1] = Math.min(255, Math.round(g * 1.18 + highlightRgb[1] * 0.15));
-            tileData[idx + 2] = Math.min(255, Math.round(b * 1.18 + highlightRgb[2] * 0.15));
-          } else if (tier === 3) {
-            tileData[idx] = Math.round(r * 0.58);
-            tileData[idx + 1] = Math.round(g * 0.58);
-            tileData[idx + 2] = Math.round(b * 0.58);
-          } else {
-            const slopeShade = 0.92 - ((diag - 18) / 12) * 0.22;
-            tileData[idx] = Math.round(r * slopeShade);
-            tileData[idx + 1] = Math.round(g * slopeShade);
-            tileData[idx + 2] = Math.round(b * slopeShade);
+
+          if (rampStyle === 'mud_slide' && Math.abs((31 - x) - y) === 3) {
+            pr = Math.round(pr * 0.70); pg = Math.round(pg * 0.70); pb = Math.round(pb * 0.70);
+          } else if (rampStyle === 'stepped') {
+            const sY = (diag - 14) % 5;
+            if (sY === 0) { pr = Math.min(255, pr + 32); pg = Math.min(255, pg + 32); pb = Math.min(255, pb + 32); }
+            else if (sY === 4) { pr = Math.round(pr * 0.60); pg = Math.round(pg * 0.60); pb = Math.round(pb * 0.60); }
+          } else if (rampStyle === 'plank') {
+            if ((diag - 14) % 4 === 0) { pr = Math.round(r * 0.35); pg = Math.round(g * 0.35); pb = Math.round(b * 0.35); }
+            else if ((diag - 14) % 4 === 1) { pr = Math.min(255, pr + 26); pg = Math.min(255, pg + 26); pb = Math.min(255, pb + 26); }
+          } else if (rampStyle === 'cobblestone' && (x % 4 === 0 && y % 4 === 0)) {
+            pr = Math.min(255, pr + 24); pg = Math.min(255, pg + 24); pb = Math.min(255, pb + 24);
           }
-          tileData[idx + 3] = 255;
-        } else if (diag >= 31 && diag <= 34) {
-          const bShadow = noBgWall ? 0.92 : (0.35 + (1 - shadowAlpha) * 0.2);
-          tileData[idx] = Math.round(r * bShadow);
-          tileData[idx + 1] = Math.round(g * bShadow);
-          tileData[idx + 2] = Math.round(b * bShadow);
-          tileData[idx + 3] = 255;
+
+          tileData[idx] = pr; tileData[idx + 1] = pg; tileData[idx + 2] = pb;
+        } else if (diag === 22) {
+          tileData[idx] = Math.round(r * 0.82);
+          tileData[idx + 1] = Math.round(g * 0.82);
+          tileData[idx + 2] = Math.round(b * 0.82);
         } else {
-          tileData[idx] = r; tileData[idx + 1] = g; tileData[idx + 2] = b; tileData[idx + 3] = 255;
+          tileData[idx] = r; tileData[idx + 1] = g; tileData[idx + 2] = b;
         }
+        tileData[idx + 3] = 255;
       }
 
-      // 11. DIAGONAL CLIFF SLOPE SW
+      // 11. DIAGONAL CLIFF SLOPE SW (TOP-DOWN RPG VIEW)
       else if (tileId === 'cliff_diag_slope_sw') {
-        const diag = (31 - y) + x;
-        if (diag < 16) {
-          if (noBgWall) {
-            applyBgPixel(tileData, idx, settings, underlayData);
-          } else {
-            tileData[idx] = Math.min(255, Math.round(r * 1.12));
-            tileData[idx + 1] = Math.min(255, Math.round(g * 1.12));
-            tileData[idx + 2] = Math.min(255, Math.round(b * 1.12));
-            tileData[idx + 3] = 255;
-          }
-        } else if (diag === 16 || diag === 17) {
-          tileData[idx] = outlineR; tileData[idx + 1] = outlineG; tileData[idx + 2] = outlineB; tileData[idx + 3] = 255;
-        } else if (diag >= 18 && diag <= 28) {
-          const slopeShade = 1.02 - ((diag - 18) / 10) * 0.22;
-          tileData[idx] = Math.round(r * slopeShade);
-          tileData[idx + 1] = Math.round(g * slopeShade);
-          tileData[idx + 2] = Math.round(b * slopeShade);
-          tileData[idx + 3] = 255;
+        const diagLip = Math.round(7 + x * 0.5);
+        const wallBottom = diagLip + 12;
+
+        if (y < diagLip) {
+          tileData[idx] = r; tileData[idx + 1] = g; tileData[idx + 2] = b;
+        } else if (y === diagLip) {
+          tileData[idx] = Math.min(255, Math.round(r * 1.30 + highlightRgb[0] * 0.22));
+          tileData[idx + 1] = Math.min(255, Math.round(g * 1.30 + highlightRgb[1] * 0.22));
+          tileData[idx + 2] = Math.min(255, Math.round(b * 1.30 + highlightRgb[2] * 0.22));
+        } else if (y > diagLip && y <= wallBottom) {
+          const wallY = y - diagLip;
+          const isStrata = (wallY % 5 === 0);
+          const wShade = isStrata ? 0.44 : 0.60;
+          tileData[idx] = Math.round(r * wShade);
+          tileData[idx + 1] = Math.round(g * wShade);
+          tileData[idx + 2] = Math.round(b * wShade);
         } else {
-          tileData[idx] = r; tileData[idx + 1] = g; tileData[idx + 2] = b; tileData[idx + 3] = 255;
+          tileData[idx] = r; tileData[idx + 1] = g; tileData[idx + 2] = b;
         }
+        tileData[idx + 3] = 255;
       }
 
-      // 12. DIAGONAL CLIFF SLOPE SE
+      // 12. DIAGONAL CLIFF SLOPE SE (TOP-DOWN RPG VIEW)
       else if (tileId === 'cliff_diag_slope_se') {
-        const diag = (31 - y) + (31 - x);
-        if (diag < 16) {
-          if (noBgWall) {
-            applyBgPixel(tileData, idx, settings, underlayData);
-          } else {
-            tileData[idx] = Math.min(255, Math.round(r * 1.12));
-            tileData[idx + 1] = Math.min(255, Math.round(g * 1.12));
-            tileData[idx + 2] = Math.min(255, Math.round(b * 1.12));
-            tileData[idx + 3] = 255;
-          }
-        } else if (diag === 16 || diag === 17) {
-          tileData[idx] = outlineR; tileData[idx + 1] = outlineG; tileData[idx + 2] = outlineB; tileData[idx + 3] = 255;
-        } else if (diag >= 18 && diag <= 28) {
-          const slopeShade = 1.02 - ((diag - 18) / 10) * 0.22;
-          tileData[idx] = Math.round(r * slopeShade);
-          tileData[idx + 1] = Math.round(g * slopeShade);
-          tileData[idx + 2] = Math.round(b * slopeShade);
-          tileData[idx + 3] = 255;
+        const diagLip = Math.round(7 + (31 - x) * 0.5);
+        const wallBottom = diagLip + 12;
+
+        if (y < diagLip) {
+          tileData[idx] = r; tileData[idx + 1] = g; tileData[idx + 2] = b;
+        } else if (y === diagLip) {
+          tileData[idx] = Math.min(255, Math.round(r * 1.28 + highlightRgb[0] * 0.20));
+          tileData[idx + 1] = Math.min(255, Math.round(g * 1.28 + highlightRgb[1] * 0.20));
+          tileData[idx + 2] = Math.min(255, Math.round(b * 1.28 + highlightRgb[2] * 0.20));
+        } else if (y > diagLip && y <= wallBottom) {
+          const wallY = y - diagLip;
+          const isStrata = (wallY % 5 === 0);
+          const wShade = isStrata ? 0.40 : 0.54;
+          tileData[idx] = Math.round(r * wShade);
+          tileData[idx + 1] = Math.round(g * wShade);
+          tileData[idx + 2] = Math.round(b * wShade);
         } else {
-          tileData[idx] = r; tileData[idx + 1] = g; tileData[idx + 2] = b; tileData[idx + 3] = 255;
+          tileData[idx] = r; tileData[idx + 1] = g; tileData[idx + 2] = b;
         }
+        tileData[idx + 3] = 255;
       }
 
-      // 13. DIAGONAL CLIFF LIP NW
+      // 13. DIAGONAL CLIFF LIP NW (TOP-DOWN RPG VIEW)
       else if (tileId === 'cliff_diag_top_nw') {
         const diag = x + y;
-        if (diag < 20) {
+        if (diag < 18) {
           tileData[idx] = r; tileData[idx + 1] = g; tileData[idx + 2] = b;
-        } else if (diag >= 20 && diag <= 22) {
-          tileData[idx] = Math.round(r * 0.45); tileData[idx + 1] = Math.round(g * 0.45); tileData[idx + 2] = Math.round(b * 0.45);
+        } else if (diag === 18 || diag === 19) {
+          tileData[idx] = Math.min(255, Math.round(r * 1.30 + highlightRgb[0] * 0.22));
+          tileData[idx + 1] = Math.min(255, Math.round(g * 1.30 + highlightRgb[1] * 0.22));
+          tileData[idx + 2] = Math.min(255, Math.round(b * 1.30 + highlightRgb[2] * 0.22));
         } else {
-          const depth = 0.55 + ((diag - 22) / 20);
-          tileData[idx] = Math.round(r * depth); tileData[idx + 1] = Math.round(g * depth); tileData[idx + 2] = Math.round(b * depth);
+          const wallDrop = diag - 19;
+          const wShade = Math.max(0.48, 0.65 - wallDrop * 0.04);
+          tileData[idx] = Math.round(r * wShade);
+          tileData[idx + 1] = Math.round(g * wShade);
+          tileData[idx + 2] = Math.round(b * wShade);
         }
         tileData[idx + 3] = 255;
       }
 
-      // 14. DIAGONAL CLIFF LIP NE
+      // 14. DIAGONAL CLIFF LIP NE (TOP-DOWN RPG VIEW)
       else if (tileId === 'cliff_diag_top_ne') {
         const diag = (31 - x) + y;
-        if (diag < 20) {
+        if (diag < 18) {
           tileData[idx] = r; tileData[idx + 1] = g; tileData[idx + 2] = b;
-        } else if (diag >= 20 && diag <= 22) {
-          tileData[idx] = Math.round(r * 0.45); tileData[idx + 1] = Math.round(g * 0.45); tileData[idx + 2] = Math.round(b * 0.45);
+        } else if (diag === 18 || diag === 19) {
+          tileData[idx] = Math.min(255, Math.round(r * 1.28 + highlightRgb[0] * 0.20));
+          tileData[idx + 1] = Math.min(255, Math.round(g * 1.28 + highlightRgb[1] * 0.20));
+          tileData[idx + 2] = Math.min(255, Math.round(b * 1.28 + highlightRgb[2] * 0.20));
         } else {
-          const depth = 0.55 + ((diag - 22) / 20);
-          tileData[idx] = Math.round(r * depth); tileData[idx + 1] = Math.round(g * depth); tileData[idx + 2] = Math.round(b * depth);
+          const wallDrop = diag - 19;
+          const wShade = Math.max(0.44, 0.60 - wallDrop * 0.04);
+          tileData[idx] = Math.round(r * wShade);
+          tileData[idx + 1] = Math.round(g * wShade);
+          tileData[idx + 2] = Math.round(b * wShade);
         }
         tileData[idx + 3] = 255;
       }
 
-      // 15. DIAGONAL CLIFF BASE NW
+      // 15. DIAGONAL CLIFF BASE NW (TOP-DOWN RPG VIEW)
       else if (tileId === 'cliff_diag_base_nw') {
         const diag = x + y;
-        if (diag < 10) {
-          const wallShade = 0.65 + (diag / 20);
-          tileData[idx] = Math.round(r * wallShade); tileData[idx + 1] = Math.round(g * wallShade); tileData[idx + 2] = Math.round(b * wallShade);
-        } else if (diag >= 10 && diag <= 15) {
-          tileData[idx] = Math.round(r * (0.35 + (1 - shadowAlpha) * 0.2));
-          tileData[idx + 1] = Math.round(g * (0.35 + (1 - shadowAlpha) * 0.2));
-          tileData[idx + 2] = Math.round(b * (0.35 + (1 - shadowAlpha) * 0.2));
+        if (diag < 12) {
+          const isStrata = (y % 4 === 0);
+          const wallShade = isStrata ? 0.44 : 0.60;
+          tileData[idx] = Math.round(r * wallShade);
+          tileData[idx + 1] = Math.round(g * wallShade);
+          tileData[idx + 2] = Math.round(b * wallShade);
+        } else if (diag === 12 || diag === 13) {
+          tileData[idx] = Math.round(r * 0.65);
+          tileData[idx + 1] = Math.round(g * 0.65);
+          tileData[idx + 2] = Math.round(b * 0.65);
         } else {
           tileData[idx] = r; tileData[idx + 1] = g; tileData[idx + 2] = b;
         }
         tileData[idx + 3] = 255;
       }
 
-      // 16. DIAGONAL CLIFF BASE NE
+      // 16. DIAGONAL CLIFF BASE NE (TOP-DOWN RPG VIEW)
       else if (tileId === 'cliff_diag_base_ne') {
         const diag = (31 - x) + y;
-        if (diag < 10) {
-          const wallShade = 0.65 + (diag / 20);
-          tileData[idx] = Math.round(r * wallShade); tileData[idx + 1] = Math.round(g * wallShade); tileData[idx + 2] = Math.round(b * wallShade);
-        } else if (diag >= 10 && diag <= 15) {
-          tileData[idx] = Math.round(r * (0.35 + (1 - shadowAlpha) * 0.2));
-          tileData[idx + 1] = Math.round(g * (0.35 + (1 - shadowAlpha) * 0.2));
-          tileData[idx + 2] = Math.round(b * (0.35 + (1 - shadowAlpha) * 0.2));
+        if (diag < 12) {
+          const isStrata = (y % 4 === 0);
+          const wallShade = isStrata ? 0.40 : 0.54;
+          tileData[idx] = Math.round(r * wallShade);
+          tileData[idx + 1] = Math.round(g * wallShade);
+          tileData[idx + 2] = Math.round(b * wallShade);
+        } else if (diag === 12 || diag === 13) {
+          tileData[idx] = Math.round(r * 0.62);
+          tileData[idx + 1] = Math.round(g * 0.62);
+          tileData[idx + 2] = Math.round(b * 0.62);
         } else {
           tileData[idx] = r; tileData[idx + 1] = g; tileData[idx + 2] = b;
         }

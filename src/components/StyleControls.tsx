@@ -1,7 +1,6 @@
 import React from 'react';
 import { Sliders, Sparkles, Mountain, Layers, Eye, Compass, Grid } from 'lucide-react';
 import { TileGeneratorSettings, EdgeStyle } from '../types/tileset';
-import { PRESET_TEXTURES } from '../utils/pixelPresets';
 
 interface StyleControlsProps {
   settings: TileGeneratorSettings;
@@ -38,9 +37,6 @@ export const StyleControls: React.FC<StyleControlsProps> = ({
           <Sliders className="w-4 h-4 text-amber-400" />
           <h2 className="text-sm font-semibold text-white tracking-tight">Top-Down 2.5D RPG Controls</h2>
         </div>
-        <span className="text-[11px] font-mono text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800/40">
-          30° Bird's-Eye (Non-Isometric)
-        </span>
       </div>
 
       {/* 30° Top-Down Bird's-Eye Projection Angle Controls */}
@@ -303,107 +299,9 @@ export const StyleControls: React.FC<StyleControlsProps> = ({
             <Mountain className="w-4 h-4 text-emerald-400" />
             <span className="text-xs font-semibold text-zinc-200">2.5D Slope & Ramp Incline Settings</span>
           </div>
-          <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800/40">
-            2.5D Elevation
-          </span>
         </div>
 
-        {/* Perspective Quick Presets (Pokemon D&P vs Dragon Quest vs Zelda vs Mana) */}
-        <div className="flex flex-wrap items-center justify-between gap-1.5 bg-[#0e1014] p-2 rounded-lg border border-[#202430]">
-          <span className="text-[11px] font-semibold text-zinc-300">RPG Presets:</span>
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <button
-              onClick={() => {
-                onChange({
-                  ...settings,
-                  rampSurfaceType: 'mud_slide',
-                  slopeBackgroundWall: 'none',
-                  slopeDepthIntensity: 0.9,
-                  slopeWheelRuts: true,
-                  slope3dCurbs: true,
-                  stairStyle: 'carved_stone',
-                  stairRailing: 'stone_balustrade',
-                  edgeStyle: 'pixel_outline',
-                  cliffShadowIntensity: 0.65,
-                });
-              }}
-              className={`px-2 py-1 text-[11px] rounded border transition-all ${
-                settings.rampSurfaceType === 'mud_slide'
-                  ? 'bg-amber-500/20 text-amber-300 border-amber-500/50 font-semibold shadow-sm'
-                  : 'bg-[#161820] text-zinc-400 border-[#262a36] hover:text-zinc-200'
-              }`}
-            >
-              🔴 Pokémon Sinnoh Slopes
-            </button>
-            <button
-              onClick={() => {
-                onChange({
-                  ...settings,
-                  rampSurfaceType: 'stepped',
-                  slopeBackgroundWall: 'none',
-                  slopeDepthIntensity: 0.95,
-                  slope3dCurbs: true,
-                  stairStyle: 'carved_stone',
-                  stairRailing: 'stone_balustrade',
-                  edgeStyle: 'soft_bevel',
-                  cliffShadowIntensity: 0.7,
-                });
-              }}
-              className={`px-2 py-1 text-[11px] rounded border transition-all ${
-                settings.rampSurfaceType === 'stepped'
-                  ? 'bg-sky-500/20 text-sky-300 border-sky-500/50 font-semibold shadow-sm'
-                  : 'bg-[#161820] text-zinc-400 border-[#262a36] hover:text-zinc-200'
-              }`}
-            >
-              🛡️ Dragon Quest Terraces
-            </button>
-            <button
-              onClick={() => {
-                onChange({
-                  ...settings,
-                  rampSurfaceType: 'natural',
-                  slopeBackgroundWall: 'none',
-                  slopeDepthIntensity: 0.9,
-                  slopeWheelRuts: true,
-                  slope3dCurbs: true,
-                  stairStyle: 'temple_marble',
-                  stairRailing: 'open_flush',
-                  edgeStyle: 'pixel_outline',
-                  cliffShadowIntensity: 0.65,
-                });
-              }}
-              className={`px-2 py-1 text-[11px] rounded border transition-all ${
-                settings.stairStyle === 'temple_marble' && settings.stairRailing === 'open_flush'
-                  ? 'bg-purple-500/20 text-purple-300 border-purple-500/50 font-semibold shadow-sm'
-                  : 'bg-[#161820] text-zinc-400 border-[#262a36] hover:text-zinc-200'
-              }`}
-            >
-              🗡️ Zelda Grand Stairs
-            </button>
-            <button
-              onClick={() => {
-                onChange({
-                  ...settings,
-                  rampSurfaceType: 'plank',
-                  slopeBackgroundWall: 'none',
-                  slopeDepthIntensity: 0.85,
-                  slopeTrestleBracing: true,
-                  stairStyle: 'wood_timbers',
-                  stairRailing: 'wood_posts',
-                  edgeStyle: 'pixel_outline',
-                  cliffShadowIntensity: 0.65,
-                });
-              }}
-              className={`px-2 py-1 text-[11px] rounded border transition-all ${
-                settings.rampSurfaceType === 'plank'
-                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50 font-semibold shadow-sm'
-                  : 'bg-[#161820] text-zinc-400 border-[#262a36] hover:text-zinc-200'
-              }`}
-            >
-              🌲 Mana Timber Trail
-            </button>
-          </div>
-        </div>
+
 
         {/* Stair & Steps Architecture Section */}
         <div className="bg-[#0e1014] p-3 rounded-lg border border-[#202430] flex flex-col gap-2.5">
@@ -671,23 +569,8 @@ export const StyleControls: React.FC<StyleControlsProps> = ({
               className="bg-[#1a1e27] border border-[#2d3340] text-xs text-zinc-200 rounded px-2 py-1 focus:outline-none"
             >
               <option value="transparent">Transparent (PNG Alpha)</option>
-              <option value="preset">Secondary Preset</option>
               <option value="color">Solid Color</option>
             </select>
-
-            {settings.underlayType === 'preset' && (
-              <select
-                value={settings.underlayPresetId}
-                onChange={(e) => updateSetting('underlayPresetId', e.target.value)}
-                className="bg-[#1a1e27] border border-[#2d3340] text-xs text-zinc-200 rounded px-2 py-1 focus:outline-none max-w-[110px]"
-              >
-                {PRESET_TEXTURES.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
-            )}
 
             {settings.underlayType === 'color' && (
               <input

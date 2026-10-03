@@ -237,23 +237,23 @@ export const TileInspector: React.FC<TileInspectorProps> = ({
               </div>
               <div className="flex justify-between">
                 <span>Projection:</span>
-                <span className="font-medium text-amber-300">30° Bird's-Eye View</span>
+                <span className="font-medium text-amber-300">Top-Down RPG View</span>
               </div>
               <div className="flex justify-between">
                 <span>Grid Architecture:</span>
                 <span className="font-mono text-zinc-300">Orthogonal (Non-Isometric)</span>
               </div>
               <div className="flex justify-between">
-                <span>2.5D Function:</span>
+                <span>RPG Function:</span>
                 <span className="font-semibold text-emerald-400">
-                  {tile.id.includes('ramp') ? '2.5D Incline Ramp (Lv.0 ↔ Lv.1)' :
-                   tile.id.includes('stairs') ? '2.5D Carved Stairway (Lv.0 ↔ Lv.1)' :
-                   tile.id === 'edge_bottom' ? '2.5D South Drop Facade (Cliff)' :
-                   tile.id.includes('corner_outer_b') ? '2.5D Cliff Corner Drop' :
-                   tile.id === 'isolated' ? '2.5D Raised Cube Block' :
-                   tile.category === 'cliffs' ? '2.5D Vertical Cliff Wall' :
-                   tile.category === 'slopes' ? '2.5D Diagonal Slope (30° Angle)' :
-                   '2.5D Plateau Surface'}
+                  {tile.id.includes('ramp') ? 'Top-Down Incline Ramp (Seamless Connect)' :
+                   tile.id.includes('stairs') ? 'Top-Down Carved Stairway (Lv.0 ↔ Lv.1)' :
+                   tile.id === 'edge_bottom' ? 'Top-Down South Drop Facade (Cliff)' :
+                   tile.id.includes('corner_outer_b') ? 'Top-Down Cliff Corner Drop' :
+                   tile.id === 'isolated' ? 'Top-Down Raised Block' :
+                   tile.category === 'cliffs' ? 'Top-Down Vertical Cliff Wall' :
+                   tile.category === 'slopes' || tile.category === 'slopes_25d' ? 'Top-Down RPG Slope (Seamless Connect)' :
+                   'Top-Down Plateau Surface'}
                 </span>
               </div>
               <div className="flex justify-between">

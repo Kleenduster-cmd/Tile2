@@ -10,19 +10,36 @@ import {
   applyGroundShadow,
 } from './elevation25dRenderer';
 
+let _sharedCanvas: HTMLCanvasElement | null = null;
+let _sharedCtx: CanvasRenderingContext2D | null = null;
+
+function getSharedCanvas(width = 32, height = 32): { canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D } {
+  if (!_sharedCanvas) {
+    _sharedCanvas = document.createElement('canvas');
+  }
+  if (_sharedCanvas.width !== width) _sharedCanvas.width = width;
+  if (_sharedCanvas.height !== height) _sharedCanvas.height = height;
+  if (!_sharedCtx) {
+    _sharedCtx = _sharedCanvas.getContext('2d', { willReadFrequently: true })!;
+  }
+  return { canvas: _sharedCanvas, ctx: _sharedCtx };
+}
+
 export function createBlankImageData(width = 32, height = 32): ImageData {
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext('2d')!;
+  if (typeof ImageData !== 'undefined') {
+    try {
+      return new ImageData(width, height);
+    } catch {
+      // Fallback
+    }
+  }
+  const { ctx } = getSharedCanvas(width, height);
   return ctx.createImageData(width, height);
 }
 
 export function imageDataToDataUrl(imgData: ImageData): string {
-  const canvas = document.createElement('canvas');
-  canvas.width = imgData.width;
-  canvas.height = imgData.height;
-  const ctx = canvas.getContext('2d')!;
+  const { canvas, ctx } = getSharedCanvas(imgData.width, imgData.height);
+  ctx.clearRect(0, 0, imgData.width, imgData.height);
   ctx.putImageData(imgData, 0, 0);
   return canvas.toDataURL('image/png');
 }
@@ -53,6 +70,56 @@ export function blendPixel(
   const g = Math.round((fg[1] * fgA + bg[1] * bgA * (1 - fgA)) / outA);
   const b = Math.round((fg[2] * fgA + bg[2] * bgA * (1 - fgA)) / outA);
   return [r, g, b, Math.round(outA * 255)];
+}
+
+/**
+ * Ensures a 32x32 ground texture tiles 100% seamlessly across X and Y axes
+ * so ground tiles connect to each other with zero gap or edge seam.
+ */
+export function makeTextureSeamless(src: ImageData): ImageData {
+  const result = createBlankImageData(32, 32);
+  const s = src.data;
+  const d = result.data;
+  d.set(s);
+
+  const feather = 3;
+
+  // Horizontal wrap matching (X-axis)
+  for (let y = 0; y < 32; y++) {
+    for (let f = 0; f < feather; f++) {
+      const leftIdx = (y * 32 + f) * 4;
+      const rightIdx = (y * 32 + (31 - f)) * 4;
+      const weight = 0.5 * (1 - f / feather);
+
+      for (let c = 0; c < 3; c++) {
+        const leftVal = s[leftIdx + c];
+        const rightVal = s[rightIdx + c];
+        const avg = (leftVal + rightVal) / 2;
+        d[leftIdx + c] = Math.round(leftVal * (1 - weight) + avg * weight);
+        d[rightIdx + c] = Math.round(rightVal * (1 - weight) + avg * weight);
+      }
+    }
+  }
+
+  // Vertical wrap matching (Y-axis)
+  const temp = new Uint8ClampedArray(d);
+  for (let x = 0; x < 32; x++) {
+    for (let f = 0; f < feather; f++) {
+      const topIdx = (f * 32 + x) * 4;
+      const bottomIdx = ((31 - f) * 32 + x) * 4;
+      const weight = 0.5 * (1 - f / feather);
+
+      for (let c = 0; c < 3; c++) {
+        const topVal = temp[topIdx + c];
+        const bottomVal = temp[bottomIdx + c];
+        const avg = (topVal + bottomVal) / 2;
+        d[topIdx + c] = Math.round(topVal * (1 - weight) + avg * weight);
+        d[bottomIdx + c] = Math.round(bottomVal * (1 - weight) + avg * weight);
+      }
+    }
+  }
+
+  return result;
 }
 
 // Tile definition metadata
@@ -128,31 +195,29 @@ export const TILE_CATALOG: TileSpec[] = [
   { id: 'curve_concave_bl', name: 'Curved Inner SW', category: 'curves', description: 'Smooth rounded quarter-circle concave inner turn SW', col: 6, row: 5 },
   { id: 'curve_concave_br', name: 'Curved Inner SE', category: 'curves', description: 'Smooth rounded quarter-circle concave inner turn SE', col: 7, row: 5 },
 
-  // Row 6: 2.5D Elevation Ramps & Lateral Slopes
-  { id: 'slope25d_ramp_v_full', name: '2.5D Vertical Ramp (N-S)', category: 'slopes_25d', description: 'Self-contained 1-tile climb from lower level up to high plateau', col: 0, row: 6, isSlope: true },
-  { id: 'slope25d_ramp_v_top', name: '2.5D Ramp Top Crest', category: 'slopes_25d', description: 'Upper entrance of 2-tile ramp meeting high plateau floor', col: 1, row: 6, isSlope: true },
-  { id: 'slope25d_ramp_v_base', name: '2.5D Ramp Base Apron', category: 'slopes_25d', description: 'Bottom exit of 2-tile ramp meeting lower ground with cast shadow', col: 2, row: 6, isSlope: true },
-  { id: 'slope25d_ramp_lat_w2e_top', name: '2.5D Lateral Ramp W→E (Ledge)', category: 'slopes_25d', description: 'Horizontal ramp walkway climbing a cliff face from West to East', col: 3, row: 6, isSlope: true },
-  { id: 'slope25d_ramp_lat_w2e_wall', name: '2.5D Lateral Ramp W→E (Wedge Wall)', category: 'slopes_25d', description: 'Cliff wall face under W→E ramp increasing in height towards East', col: 4, row: 6, isSlope: true },
-  { id: 'slope25d_ramp_lat_e2w_top', name: '2.5D Lateral Ramp E→W (Ledge)', category: 'slopes_25d', description: 'Horizontal ramp walkway climbing a cliff face from East to West', col: 5, row: 6, isSlope: true },
-  { id: 'slope25d_ramp_lat_e2w_wall', name: '2.5D Lateral Ramp E→W (Wedge Wall)', category: 'slopes_25d', description: 'Cliff wall face under E→W ramp increasing in height towards West', col: 6, row: 6, isSlope: true },
-  { id: 'slope25d_natural_hill', name: '2.5D Rolling Hill / Mound', category: 'slopes_25d', description: 'Smooth rounded 2.5D elevation with upper sunlit dome and lower shadow', col: 7, row: 6, isSlope: true },
+  // Row 6: Top-Down RPG Elevation Ramps & Horizontal Slopes
+  { id: 'slope25d_ramp_v_full', name: 'Top-Down Vertical Ramp (1-Tile)', category: 'slopes_25d', description: 'Straight top-down vertical ramp climbing from lower ground to high plateau', col: 0, row: 6, isSlope: true },
+  { id: 'slope25d_ramp_v_top', name: 'Top-Down Vertical Ramp (Top Half)', category: 'slopes_25d', description: 'Upper 32x32 half of 2-tile vertical ramp; connects seamlessly to base', col: 1, row: 6, isSlope: true },
+  { id: 'slope25d_ramp_v_base', name: 'Top-Down Vertical Ramp (Bottom Half)', category: 'slopes_25d', description: 'Lower 32x32 half of 2-tile vertical ramp; connects seamlessly to top', col: 2, row: 6, isSlope: true },
+  { id: 'slope25d_ramp_lat_w2e_top', name: 'Top-Down Ramp W→E (Part 1 - Low)', category: 'slopes_25d', description: 'West 32x32 half of horizontal ramp; connects seamlessly to Part 2', col: 3, row: 6, isSlope: true },
+  { id: 'slope25d_ramp_lat_w2e_wall', name: 'Top-Down Ramp W→E (Part 2 - High)', category: 'slopes_25d', description: 'East 32x32 half of horizontal ramp; connects seamlessly to Part 1', col: 4, row: 6, isSlope: true },
+  { id: 'slope25d_ramp_lat_e2w_top', name: 'Top-Down Ramp E→W (Part 1 - High)', category: 'slopes_25d', description: 'East 32x32 half of horizontal ramp; connects seamlessly to Part 2', col: 5, row: 6, isSlope: true },
+  { id: 'slope25d_ramp_lat_e2w_wall', name: 'Top-Down Ramp E→W (Part 2 - Low)', category: 'slopes_25d', description: 'West 32x32 half of horizontal ramp; connects seamlessly to Part 1', col: 6, row: 6, isSlope: true },
+  { id: 'slope25d_natural_hill', name: 'Top-Down Rolling Hill / Mound', category: 'slopes_25d', description: 'Top-down circular hill with gentle concentric slope contours', col: 7, row: 6, isSlope: true },
 
-  // Row 7: 2.5D Diagonal Cliff Slopes
-  { id: 'cliff_diag_slope_nw', name: '2.5D Diagonal Cliff (Slope NW)', category: 'slopes_25d', description: 'Upper plateau NW, sloped cliff wall in middle, lower ground in SE', col: 0, row: 7, isSlope: true },
-  { id: 'cliff_diag_slope_ne', name: '2.5D Diagonal Cliff (Slope NE)', category: 'slopes_25d', description: 'Upper plateau NE, sloped cliff wall in middle, lower ground in SW', col: 1, row: 7, isSlope: true },
-  { id: 'cliff_diag_slope_sw', name: '2.5D Diagonal Cliff (Slope SW)', category: 'slopes_25d', description: 'Slanted cliff face elevation facing South-West with drop shadow', col: 2, row: 7, isSlope: true },
-  { id: 'cliff_diag_slope_se', name: '2.5D Diagonal Cliff (Slope SE)', category: 'slopes_25d', description: 'Slanted cliff face elevation facing South-East with drop shadow', col: 3, row: 7, isSlope: true },
-  { id: 'cliff_diag_top_nw', name: '2.5D Diagonal Cliff Lip NW', category: 'slopes_25d', description: 'Diagonal clifftop edge facing NW with rock trim and plateau rim', col: 4, row: 7, isSlope: true },
-  { id: 'cliff_diag_top_ne', name: '2.5D Diagonal Cliff Lip NE', category: 'slopes_25d', description: 'Diagonal clifftop edge facing NE with rock trim and plateau rim', col: 5, row: 7, isSlope: true },
-  { id: 'cliff_diag_base_nw', name: '2.5D Diagonal Cliff Base NW', category: 'slopes_25d', description: 'Diagonal cliff base meeting ground with heavy cast shadow NW', col: 6, row: 7, isSlope: true },
-  { id: 'cliff_diag_base_ne', name: '2.5D Diagonal Cliff Base NE', category: 'slopes_25d', description: 'Diagonal cliff base meeting ground with heavy cast shadow NE', col: 7, row: 7, isSlope: true },
+  // Row 7: Top-Down RPG Diagonal Slopes & Cliffs
+  { id: 'cliff_diag_slope_nw', name: 'Top-Down Diagonal Slope NW', category: 'slopes_25d', description: 'Top-down diagonal slope connecting upper plateau NW to lower ground SE', col: 0, row: 7, isSlope: true },
+  { id: 'cliff_diag_slope_ne', name: 'Top-Down Diagonal Slope NE', category: 'slopes_25d', description: 'Top-down diagonal slope connecting upper plateau NE to lower ground SW', col: 1, row: 7, isSlope: true },
+  { id: 'cliff_diag_slope_sw', name: 'Top-Down Diagonal Slope SW', category: 'slopes_25d', description: 'Top-down diagonal slope connecting upper plateau SW to lower ground NE', col: 2, row: 7, isSlope: true },
+  { id: 'cliff_diag_slope_se', name: 'Top-Down Diagonal Slope SE', category: 'slopes_25d', description: 'Top-down diagonal slope connecting upper plateau SE to lower ground NW', col: 3, row: 7, isSlope: true },
+  { id: 'cliff_diag_top_nw', name: 'Top-Down Diagonal Cliff Lip NW', category: 'slopes_25d', description: 'Top-down diagonal cliff top rim facing NW', col: 4, row: 7, isSlope: true },
+  { id: 'cliff_diag_top_ne', name: 'Top-Down Diagonal Cliff Lip NE', category: 'slopes_25d', description: 'Top-down diagonal cliff top rim facing NE', col: 5, row: 7, isSlope: true },
+  { id: 'cliff_diag_base_nw', name: 'Top-Down Diagonal Cliff Base NW', category: 'slopes_25d', description: 'Top-down diagonal cliff base meeting ground seamlessly NW', col: 6, row: 7, isSlope: true },
+  { id: 'cliff_diag_base_ne', name: 'Top-Down Diagonal Cliff Base NE', category: 'slopes_25d', description: 'Top-down diagonal cliff base meeting ground seamlessly NE', col: 7, row: 7, isSlope: true },
 ];
 
 // Helper to determine if pixel (x,y) is inside primary terrain shape for a given tile ID
-function evalShape(id: string, x: number, y: number, radius: number, settings?: TileGeneratorSettings): boolean {
-  const angleDeg = settings?.projectionAngle ?? 30;
-  const tanAngle = Math.tan((angleDeg * Math.PI) / 180); // tan(30°) ≈ 0.577
+function evalShape(id: string, x: number, y: number, radius: number, tanAngle = 0.57735): boolean {
 
   switch (id) {
     case 'center':
@@ -369,6 +434,14 @@ export function generateTileset(
 
   const highlightRgb = hexToRgb(settings.highlightColor);
 
+  // Precompute 30° bird's-eye projection trigonometry once for the whole tileset
+  const angleDeg = settings.projectionAngle ?? 30;
+  const tanAngle = Math.tan((angleDeg * Math.PI) / 180);
+
+  // Reusable flat pixel buffers (1024 bytes each, 0 allocations per tile)
+  const maskBuf = new Uint8Array(1024);
+  const isEdgeBuf = new Uint8Array(1024);
+
   // Get underlay ImageData if specified
   let underlayData: ImageData | null = null;
   if (settings.underlayType === 'preset') {
@@ -398,41 +471,67 @@ export function generateTileset(
     } else if (spec.id === 'corridor_horiz') {
       render25dHorizontalLedge(tileData, baseData, settings, outlineR, outlineG, outlineB, highlightRgb, underlayData);
     } else {
-      // 1. Determine shape mask for all 32x32 pixels
-      const mask: boolean[][] = Array.from({ length: 32 }, () => Array(32).fill(false));
+      // 1. Determine shape mask for all 32x32 pixels using flat Uint8Array
+      maskBuf.fill(0);
+      isEdgeBuf.fill(0);
+      const radius = settings.cornerRoundness * 2 + 10;
+
       for (let y = 0; y < 32; y++) {
+        const rowOffset = y * 32;
         for (let x = 0; x < 32; x++) {
-          mask[y][x] = evalShape(spec.id, x, y, settings.cornerRoundness * 2 + 10, settings);
+          if (evalShape(spec.id, x, y, radius, tanAngle)) {
+            maskBuf[rowOffset + x] = 1;
+          }
         }
       }
 
-      // Add grass fringe / ragged edge perturbation if style is grass_fringe
-      if (settings.edgeStyle === 'grass_fringe' && spec.id !== 'center') {
-        applyGrassFringeToMask(mask, spec.id, settings.grassBladeFrequency);
+      // Add grass fringe / ragged edge perturbation if style is grass_fringe (never on core ground tiles)
+      if (settings.edgeStyle === 'grass_fringe' && spec.category !== 'core') {
+        applyGrassFringeToMask(maskBuf, spec.id, settings.grassBladeFrequency);
       }
 
       // 2. Compute distance to boundary for edge detection
-      const isEdge: boolean[][] = Array.from({ length: 32 }, () => Array(32).fill(false));
-      const thickness = settings.edgeThickness;
+      // CRITICAL FOR ZERO-GAP CONNECTING GROUND TILES:
+      // - Core ground fill tiles ('center', 'center_alt1', 'center_alt2') have NO edge outline,
+      //   ensuring they tile with 0px gap against each other and against adjacent tiles.
+      // - For other connecting tiles, boundaries that extend across the tile border
+      //   (i.e., evalShape is true in adjacent space) are connected terrain, NOT outside edges!
+      if (spec.category !== 'core') {
+        const thickness = settings.edgeThickness;
+        const thickSq = thickness * thickness;
 
-      for (let y = 0; y < 32; y++) {
-        for (let x = 0; x < 32; x++) {
-          if (!mask[y][x]) continue;
+        for (let y = 0; y < 32; y++) {
+          const rowOffset = y * 32;
+          for (let x = 0; x < 32; x++) {
+            if (!maskBuf[rowOffset + x]) continue;
 
-          // Check if within 'thickness' of outside
-          let nearOutside = false;
-          for (let dy = -thickness; dy <= thickness && !nearOutside; dy++) {
-            for (let dx = -thickness; dx <= thickness && !nearOutside; dx++) {
-              if (dx * dx + dy * dy <= thickness * thickness) {
-                const nx = x + dx;
-                const ny = y + dy;
-                if (nx < 0 || nx >= 32 || ny < 0 || ny >= 32 || !mask[ny][nx]) {
-                  nearOutside = true;
+            // Check if within 'thickness' of true outside space (NOT connecting tile boundaries)
+            let nearOutside = false;
+            for (let dy = -thickness; dy <= thickness && !nearOutside; dy++) {
+              const ny = y + dy;
+              const dySq = dy * dy;
+              for (let dx = -thickness; dx <= thickness; dx++) {
+                if (dx * dx + dySq <= thickSq) {
+                  const nx = x + dx;
+                  if (nx >= 0 && nx < 32 && ny >= 0 && ny < 32) {
+                    if (!maskBuf[ny * 32 + nx]) {
+                      nearOutside = true;
+                      break;
+                    }
+                  } else {
+                    // Check if terrain extends across the tile border into the neighboring tile
+                    if (!evalShape(spec.id, nx, ny, radius, tanAngle)) {
+                      nearOutside = true;
+                      break;
+                    }
+                  }
                 }
               }
             }
+            if (nearOutside) {
+              isEdgeBuf[rowOffset + x] = 1;
+            }
           }
-          isEdge[y][x] = nearOutside;
         }
       }
 
@@ -440,9 +539,11 @@ export function generateTileset(
       const depthIntensity = settings.slopeDepthIntensity ?? 0.85;
 
       for (let y = 0; y < 32; y++) {
+        const rowOffset = y * 32;
         for (let x = 0; x < 32; x++) {
-          const idx = (y * 32 + x) * 4;
-          const inside = mask[y][x];
+          const pixelIndex = rowOffset + x;
+          const idx = pixelIndex * 4;
+          const inside = maskBuf[pixelIndex] === 1;
 
           if (inside) {
             // Sample base texture
@@ -472,10 +573,8 @@ export function generateTileset(
               }
             }
 
-            // Slope Depth, Incline Gradient & Terracing for Row 4 30° / 45° Slopes
+            // Slope Depth, Incline Gradient & Terracing for Row 4 30° / 45° Slopes & Curves
             if (spec.category === 'slopes') {
-              const angleDeg = settings.projectionAngle ?? 30;
-              const tanAngle = Math.tan((angleDeg * Math.PI) / 180);
               let slopeDist = 0;
               let isNorthOrWestFacing = false;
 
@@ -506,29 +605,84 @@ export function generateTileset(
               }
 
               if (slopeDist >= 0) {
-                if (slopeDist === 1) {
-                  // Slope top crest terrace highlight
-                  const rimMult = isNorthOrWestFacing ? 1.25 : 1.12;
-                  r = Math.min(255, Math.round(r * rimMult + highlightRgb[0] * 0.18));
-                  g = Math.min(255, Math.round(g * rimMult + highlightRgb[1] * 0.18));
-                  b = Math.min(255, Math.round(b * rimMult + highlightRgb[2] * 0.18));
-                } else if (slopeDist === 2 || slopeDist === 3) {
-                  // Upper terrace step
-                  r = Math.min(255, Math.round(r * 1.08));
-                  g = Math.min(255, Math.round(g * 1.08));
-                  b = Math.min(255, Math.round(b * 1.08));
-                } else if (slopeDist >= 4 && slopeDist <= 10) {
-                  // Incline shading gradient
-                  const slopeShade = Math.max(0.72, 1.0 - ((slopeDist - 3) / 7) * 0.22 * depthIntensity);
-                  r = Math.round(r * slopeShade);
-                  g = Math.round(g * slopeShade);
-                  b = Math.round(b * slopeShade);
+                // Top-down RPG slope incline & boundary
+                if (settings.slope3dCurbs && slopeDist <= 1) {
+                  // Subtle top-down slope ridge highlight
+                  const rimMult = isNorthOrWestFacing ? 1.25 : 1.15;
+                  r = Math.min(255, Math.round(r * rimMult + highlightRgb[0] * 0.20));
+                  g = Math.min(255, Math.round(g * rimMult + highlightRgb[1] * 0.20));
+                  b = Math.min(255, Math.round(b * rimMult + highlightRgb[2] * 0.20));
+                } else if (slopeDist <= 10) {
+                  // Top-down RPG slope incline zone
+                  const slopeT = slopeDist / 10;
+                  const elevLight = 1.12 - slopeT * (0.12 * depthIntensity);
+                  r = Math.min(255, Math.round(r * elevLight));
+                  g = Math.min(255, Math.round(g * elevLight));
+                  b = Math.min(255, Math.round(b * elevLight));
+
+                  // Transverse Incline Treads in top-down RPG perspective
+                  const rib = Math.round(slopeDist) % 4;
+                  if (rib === 0) {
+                    const ribBoost = Math.round(18 * depthIntensity);
+                    r = Math.min(255, r + ribBoost);
+                    g = Math.min(255, g + ribBoost);
+                    b = Math.min(255, b + ribBoost);
+                  } else if (rib === 2) {
+                    r = Math.round(r * 0.88);
+                    g = Math.round(g * 0.88);
+                    b = Math.round(b * 0.88);
+                  }
+
+                  // Ramp surface patterns
+                  const rampStyle = settings.rampSurfaceType || 'natural';
+                  if (rampStyle === 'mud_slide') {
+                    const isRut = Math.abs(x - y) === 3 || Math.abs((31 - x) - y) === 3;
+                    if (isRut) {
+                      r = Math.round(r * 0.70); g = Math.round(g * 0.70); b = Math.round(b * 0.70);
+                    }
+                  } else if (rampStyle === 'stepped') {
+                    const stepY = Math.round(slopeDist) % 6;
+                    if (stepY === 0) {
+                      r = Math.min(255, r + 30); g = Math.min(255, g + 30); b = Math.min(255, b + 30);
+                    } else if (stepY === 5) {
+                      r = Math.round(r * 0.65); g = Math.round(g * 0.65); b = Math.round(b * 0.65);
+                    }
+                  } else if (rampStyle === 'plank') {
+                    if (Math.round(slopeDist) % 5 === 0) {
+                      r = Math.round(r * 0.40); g = Math.round(g * 0.40); b = Math.round(b * 0.40);
+                    }
+                  } else if (rampStyle === 'cobblestone') {
+                    if ((x % 4 === 0 && y % 4 === 0)) {
+                      r = Math.min(255, r + 24); g = Math.min(255, g + 24); b = Math.min(255, b + 24);
+                    }
+                  }
+                }
+                // For slopeDist > 10, perfectly retains base texture (r, g, b) with ZERO gap to adjacent ground tiles!
+              }
+            } else if (spec.category === 'curves') {
+              // 2.5D Radial Elevation Curvature for Curved Outer and Inner Corners
+              if (spec.id.startsWith('curve_convex_')) {
+                let cornerDist = 0;
+                if (spec.id === 'curve_convex_tl') cornerDist = Math.hypot(x - 8, y - 8);
+                else if (spec.id === 'curve_convex_tr') cornerDist = Math.hypot(x - 24, y - 8);
+                else if (spec.id === 'curve_convex_bl') cornerDist = Math.hypot(x - 8, y - 24);
+                else if (spec.id === 'curve_convex_br') cornerDist = Math.hypot(x - 24, y - 24);
+
+                if (cornerDist <= 4) {
+                  r = Math.min(255, Math.round(r * 1.25 + highlightRgb[0] * 0.20));
+                  g = Math.min(255, Math.round(g * 1.25 + highlightRgb[1] * 0.20));
+                  b = Math.min(255, Math.round(b * 1.25 + highlightRgb[2] * 0.20));
+                } else if (cornerDist >= 12 && cornerDist <= 16) {
+                  const domeShade = 0.88 - ((cornerDist - 12) / 4) * 0.18 * depthIntensity;
+                  r = Math.round(r * domeShade);
+                  g = Math.round(g * domeShade);
+                  b = Math.round(b * domeShade);
                 }
               }
             }
 
             // Apply edge styling
-            if (isEdge[y][x]) {
+            if (isEdgeBuf[pixelIndex]) {
               if (settings.edgeStyle === 'pixel_outline') {
                 const alphaFactor = settings.outlineOpacity;
                 r = Math.round(r * (1 - alphaFactor) + outlineR * alphaFactor);
@@ -555,7 +709,7 @@ export function generateTileset(
             }
 
             // Highlight rim if enabled (subtle rim on top/left edge)
-            if (settings.highlightRim && isEdge[y][x] && (y <= 10 || x <= 10)) {
+            if (settings.highlightRim && isEdgeBuf[pixelIndex] && (y <= 10 || x <= 10)) {
               r = Math.min(255, Math.round(r * 0.7 + highlightRgb[0] * 0.3));
               g = Math.min(255, Math.round(g * 0.7 + highlightRgb[1] * 0.3));
               b = Math.min(255, Math.round(b * 0.7 + highlightRgb[2] * 0.3));
@@ -667,19 +821,20 @@ export function generateTileset(
 }
 
 // Organic grass fringe perturbation on mask edges
-function applyGrassFringeToMask(mask: boolean[][], id: string, freq: number) {
+function applyGrassFringeToMask(mask: Uint8Array, id: string, freq: number) {
   for (let y = 0; y < 32; y++) {
+    const rowOffset = y * 32;
     for (let x = 0; x < 32; x++) {
       if (id === 'edge_top' && (y === 6 || y === 7)) {
         // Tuft blades sticking up into negative space
-        if ((x * freq * 3) % 7 < 3) mask[y][x] = true;
+        if ((x * freq * 3) % 7 < 3) mask[rowOffset + x] = 1;
       } else if (id === 'edge_bottom' && (y === 24 || y === 25)) {
         // Tuft blades hanging down
-        if ((x * freq * 5) % 9 < 4) mask[y][x] = true;
+        if ((x * freq * 5) % 9 < 4) mask[rowOffset + x] = 1;
       } else if (id === 'edge_left' && (x === 6 || x === 7)) {
-        if ((y * freq * 3) % 7 < 3) mask[y][x] = true;
+        if ((y * freq * 3) % 7 < 3) mask[rowOffset + x] = 1;
       } else if (id === 'edge_right' && (x === 24 || x === 25)) {
-        if ((y * freq * 5) % 9 < 4) mask[y][x] = true;
+        if ((y * freq * 5) % 9 < 4) mask[rowOffset + x] = 1;
       }
     }
   }
